@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "@/styles/globals.css";
+import "@/styles/improvements.css";
 
 export const metadata: Metadata = {
   title: "PassSanté par DocPoche AI",
