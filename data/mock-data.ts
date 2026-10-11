@@ -1,4 +1,19 @@
-import type { AuditLog, MedicalDocument, PatientAppointment, RoleDefinition, VitalMeasurement } from "@/types";
+import type { AuditLog, MedicalDocument, PatientAppointment, RoleDefinition, StaffPatient, VitalMeasurement } from "@/types";
+
+// Dossiers minimaux des patients suivis par le personnel (démonstration).
+// Les champs absents affichent « Non renseigné » : aucune donnée médicale n'est inventée.
+export const staffPatients: StaffPatient[] = [
+  { id: "PS-2024-0812", initials: "AM", name: "Aminata Mensah", age: "34 ans", gender: "Femme", lastVisit: "Aujourd'hui, 09:40", reason: "Suivi hypertension", status: "Suivi actif", tone: "green", alert: "Pénicilline", next: "24 juin, 09:30", birthDate: "18 août 1990", phone: "+225 07 48 22 19 05", bloodGroup: "O+", allergy: "Pénicilline" },
+  { id: "PS-2025-0148", initials: "YK", name: "Yao Kouamé", age: "58 ans", gender: "Homme", lastVisit: "Aujourd'hui, 08:15", reason: "Douleur thoracique", status: "À surveiller", tone: "red", alert: "Risque cardio", next: "Aujourd'hui, 15:00" },
+  { id: "PS-2024-0934", initials: "FT", name: "Fatou Traoré", age: "27 ans", gender: "Femme", lastVisit: "Hier, 16:20", reason: "Suivi de grossesse", status: "Suivi actif", tone: "green", alert: "", next: "2 juillet, 10:15" },
+  { id: "PS-2023-0621", initials: "JB", name: "Jean-Baptiste Koffi", age: "71 ans", gender: "Homme", lastVisit: "14 juin 2025", reason: "Diabète type 2", status: "Résultats reçus", tone: "blue", alert: "", next: "28 juin, 11:00" },
+  { id: "PS-2025-0207", initials: "SN", name: "Salimata N'Dri", age: "43 ans", gender: "Femme", lastVisit: "12 juin 2025", reason: "Bilan annuel", status: "Nouveau", tone: "purple", alert: "Latex", next: "30 juin, 14:30", allergy: "Latex" },
+  { id: "PS-2024-0309", initials: "OD", name: "Oumar Diabaté", age: "39 ans", gender: "Homme", lastVisit: "9 juin 2025", reason: "Lombalgie chronique", status: "Suivi actif", tone: "green", alert: "", next: "5 juillet, 09:00" },
+];
+
+export function getPatientById(id: string) {
+  return staffPatients.find(patient => patient.id === id);
+}
 
 export const upcomingAppointments: PatientAppointment[] = [
   { id: "rdv-1", date: "24 juin 2025", day: "24", month: "JUIN", year: "2025", time: "09:30", doctor: "Dr Koffi Konan", specialty: "Médecine générale", reason: "Suivi médical", facility: "Clinique Centrale", room: "Cabinet 2B", status: "Confirmé" },
@@ -43,7 +58,6 @@ export const adminRoles: RoleDefinition[] = [
     usersCount: 86,
     color: "blue",
     permissions: { patients: "write", appointments: "write", prescriptions: "write", exams: "write", users: "none", audit: "read" },
-    customClaims: { role: "hospital_staff", canPrescribe: true, facilityId: "clinique_centrale" },
   },
   {
     id: "patient",
@@ -52,7 +66,6 @@ export const adminRoles: RoleDefinition[] = [
     usersCount: 1154,
     color: "green",
     permissions: { patients: "read", appointments: "write", prescriptions: "read", exams: "read", users: "none", audit: "none" },
-    customClaims: { role: "patient", canPrescribe: false, facilityId: "clinique_centrale" },
   },
   {
     id: "admin",
@@ -61,7 +74,6 @@ export const adminRoles: RoleDefinition[] = [
     usersCount: 8,
     color: "purple",
     permissions: { patients: "read", appointments: "manage", prescriptions: "read", exams: "read", users: "manage", audit: "manage" },
-    customClaims: { role: "admin", canPrescribe: false, facilityId: "clinique_centrale" },
   },
 ];
 

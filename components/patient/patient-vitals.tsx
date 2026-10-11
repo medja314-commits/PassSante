@@ -26,7 +26,7 @@ export function PatientVitals() {
     const systolic = Number(form.systolic), diastolic = Number(form.diastolic);
     if (systolic < 70 || systolic > 250 || diastolic < 40 || diastolic > 150) { setError("Vérifiez les valeurs de pression artérielle saisies."); return; }
     const measurement: VitalMeasurement = { id:`vital-${Date.now()}`, measuredAt:new Date(form.measuredAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}), systolic, diastolic, heartRate:Number(form.heartRate), temperature:Number(form.temperature), weight:Number(form.weight), source:"patient" };
-    setMeasurements(current=>[measurement,...current]); setForm(emptyForm); setError(""); setShowForm(false); setNotice("Votre mesure a bien été enregistrée.");
+    setMeasurements(current=>[measurement,...current]); setForm(emptyForm); setError(""); setShowForm(false); setNotice("Mesure ajoutée à l'historique de cette session uniquement.");
   };
 
   return <main className="patient-content patient-subpage">

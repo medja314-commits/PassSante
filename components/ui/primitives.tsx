@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "./icon";
 
-export function Button({ children, variant = "primary", icon, onClick, type = "button", disabled = false }: { children: ReactNode; variant?: "primary" | "soft" | "ghost" | "danger"; icon?: IconName; onClick?: () => void; type?: "button" | "submit"; disabled?: boolean }) {
-  return <button type={type} disabled={disabled} className={`button button-${variant}`} onClick={onClick}>{icon && <Icon name={icon} size={16}/>}<span>{children}</span></button>;
+export function Button({ children, variant = "primary", icon, onClick, type = "button", disabled = false, title }: { children: ReactNode; variant?: "primary" | "soft" | "ghost" | "danger"; icon?: IconName; onClick?: () => void; type?: "button" | "submit"; disabled?: boolean; title?: string }) {
+  return <button type={type} disabled={disabled} title={title} className={`button button-${variant}`} onClick={onClick}>{icon && <Icon name={icon} size={16}/>}<span>{children}</span></button>;
 }
 
 export function Badge({ children, tone = "blue" }: { children: ReactNode; tone?: "blue" | "green" | "red" | "amber" | "neutral" | "purple" }) {

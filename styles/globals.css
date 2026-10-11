@@ -26,6 +26,17 @@
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .45; }
+.clickable-event { cursor: pointer; }
+.patient-not-found { min-height: 100vh; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.patient-not-found h1 { font-size: 22px; margin: 0; }
+.patient-not-found p { color: var(--muted); font-size: 12px; max-width: 360px; margin: 0; }
+.patient-not-found .button { margin-top: 6px; text-decoration: none; }
+.modal-form { display: grid; gap: 13px; padding: 17px 20px; }
+.modal-form label { display: flex; flex-direction: column; gap: 5px; color: var(--muted); font-size: 9px; font-weight: 600; }
+.modal-form input, .modal-form select, .modal-form textarea { border: 1px solid var(--line); border-radius: 7px; min-height: 38px; padding: 8px 10px; color: var(--ink); background: white; outline-color: var(--blue); font-size: 10px; }
+.modal-form textarea { resize: vertical; min-height: 66px; }
+.modal-form .form-error { margin-right: 0; }
 h1, h2, h3, p { margin: 0; }
 h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .button { min-height: 38px; border: 0; border-radius: var(--radius); padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-weight: 650; transition: .2s; white-space: nowrap; }

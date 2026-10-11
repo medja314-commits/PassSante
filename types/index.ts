@@ -53,7 +53,6 @@ export interface RoleDefinition {
   usersCount: number;
   color: "blue" | "green" | "purple";
   permissions: Record<string, PermissionLevel>;
-  customClaims: Record<string, string | boolean>;
 }
 
 export interface AuditLog {
@@ -66,4 +65,24 @@ export interface AuditLog {
   ipAddress: string;
   status: "Succès" | "Refusé";
   risk: "Normal" | "À vérifier";
+}
+
+export type PatientStatus = "Suivi actif" | "À surveiller" | "Résultats reçus" | "Nouveau";
+
+export interface StaffPatient {
+  id: string;
+  initials: string;
+  name: string;
+  age: string;
+  gender: string;
+  lastVisit: string;
+  reason: string;
+  status: PatientStatus;
+  tone: "blue" | "green" | "red" | "purple";
+  alert: string;
+  next: string;
+  birthDate?: string;
+  phone?: string;
+  bloodGroup?: string;
+  allergy?: string;
 }
