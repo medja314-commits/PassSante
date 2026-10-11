@@ -13,53 +13,6 @@ Ce document décrit les améliorations apportées à l'interface PassSanté pour
 
 ### Nouveaux fichiers
 
-#### `utils/interactive-actions.ts`
-Définit toutes les actions disponibles dans l'application :
-- Actions Patients (créer, éditer, ouvrir)
-- Actions Rendez-vous (créer, modifier, voir détails)
-- Actions Documents (télécharger, uploader)
-- Actions Examens (valider, demander)
-- Actions Admin (inviter, éditer rôles)
-- Actions Assistant IA
-
-**Utilisation :**
-```typescript
-import { interactiveActions } from "@/utils/interactive-actions";
-
-// Créer une action
-const action = interactiveActions.openPatient("PS-2024-0812");
-
-// Exécuter l'action
-actionHandlers.handleAction(action);
-```
-
-#### `utils/use-interactive.ts`
-Hooks React pour gérer l'interactivité :
-- `useInteractive()` : Gère les notifications, modales, états de chargement
-- `useNavigation()` : Gère la navigation fluide
-- `useButtonState()` : Gère les états des boutons
-
-**Utilisation :**
-```typescript
-import { useInteractive } from "@/utils/use-interactive";
-
-export function MyComponent() {
-  const { showNotification, openModal, executeAction } = useInteractive();
-
-  const handleCreatePatient = async () => {
-    await executeAction(
-      async () => {
-        // Appel API
-        await createPatient({...});
-      },
-      "Patient créé avec succès"
-    );
-  };
-
-  return <button onClick={handleCreatePatient}>Créer patient</button>;
-}
-```
-
 #### `components/ui/toast.tsx`
 Composant de notification amélioré :
 - Types : success, error, info, warning
@@ -77,52 +30,6 @@ import { Toast, ToastContainer } from "@/components/ui/toast";
 />
 ```
 
-### Intégration dans pass-sante-app.tsx
-
-Pour rendre les boutons réellement interactifs :
-
-1. **Importer les hooks** :
-   ```typescript
-   import { useInteractive } from "@/utils/use-interactive";
-   ```
-
-2. **Utiliser dans les vues** :
-   ```typescript
-   function DashboardView({ openPatient }: { openPatient: () => void }) {
-     const { showNotification, executeAction } = useInteractive();
-
-     return (
-       <button 
-         onClick={() => executeAction(
-           () => openPatient(),
-           "Dossier patient ouvert"
-         )}
-       >
-         Ouvrir le dossier
-       </button>
-     );
-   }
-   ```
-
-3. **Ajouter les notifications** :
-   ```typescript
-   const [notification, setNotification] = useState<...>(null);
-   
-   return (
-     <>
-       {notification && (
-         <Toast 
-           message={notification.message}
-           type={notification.type}
-           onClose={() => setNotification(null)}
-         />
-       )}
-       {/* Contenu */}
-     </>
-   );
-   ```
-
----
 
 ## 2. Améliorations de la Lisibilité 📖
 
@@ -264,13 +171,12 @@ const tabs = ["Consultations & CR", "Constantes", "Prescriptions", "Examens & La
 ## 4. Checklist d'Implémentation pour les Membres
 
 ### Sidickk (Authentification)
-- [ ] Ajouter `useInteractive()` dans les pages d'authentification
 - [ ] Implémenter les actions de login/logout
 - [ ] Ajouter les notifications de succès/erreur d'authentification
 - [ ] Utiliser les toasts pour les messages de session
 
 ### Nethania (Patients & Dossier)
-- [ ] Remplacer les clics fictifs par des `useInteractive()` actions
+- [ ] Remplacer les boutons désactivés « Bientôt disponible » par des actions réelles
 - [ ] Ajouter des notifications lors de la création/modification de patients
 - [ ] Implémenter les modales pour créer/éditer patients
 - [ ] Utiliser les toasts pour les confirmations
@@ -306,63 +212,7 @@ import "@/styles/improvements.css";
 
 ---
 
-## 6. Exemple Complet d'Intégration
-
-### Avant (pas interactif)
-```typescript
-function DashboardView({ openPatient }) {
-  return (
-    <button onClick={() => openPatient()}>
-      Ouvrir le dossier
-    </button>
-  );
-}
-```
-
-### Après (interactif avec notifications)
-```typescript
-"use client";
-
-import { useInteractive } from "@/utils/use-interactive";
-import { Toast } from "@/components/ui/toast";
-
-function DashboardView({ openPatient }) {
-  const { showNotification, notification, closeNotification, executeAction } = useInteractive();
-
-  const handleOpenPatient = async () => {
-    await executeAction(
-      async () => {
-        // Simuler l'ouverture du dossier
-        await new Promise(r => setTimeout(r, 500));
-        openPatient();
-      },
-      "Dossier patient ouvert"
-    );
-  };
-
-  return (
-    <>
-      {notification && (
-        <Toast
-          message={notification.message}
-          type={notification.type}
-          onClose={closeNotification}
-        />
-      )}
-      <button 
-        onClick={handleOpenPatient}
-        className="button button-primary"
-      >
-        Ouvrir le dossier
-      </button>
-    </>
-  );
-}
-```
-
----
-
-## 7. Points d'Amélioration Futurs
+## 6. Points d'Amélioration Futurs
 
 - [ ] Intégrer avec le système d'authentification réel (Sidickk)
 - [ ] Connecter les actions aux appels API réels
@@ -374,7 +224,7 @@ function DashboardView({ openPatient }) {
 
 ---
 
-## 8. Directives de Conformité
+## 7. Directives de Conformité
 
 ### Accessibilité (WCAG 2.1)
 - ✅ Tous les boutons ont des labels clairs
@@ -397,7 +247,7 @@ function DashboardView({ openPatient }) {
 
 ---
 
-## 9. Tests Recommandés
+## 8. Tests Recommandés
 
 ```bash
 # Vérifier la compilation
@@ -416,13 +266,13 @@ npm run dev
 
 ---
 
-## 10. Support & Questions
+## 9. Support & Questions
 
 Pour chaque membre :
-- **Sidickk** : Voir `utils/interactive-actions.ts` section "Actions Admin"
-- **Nethania** : Voir `utils/interactive-actions.ts` section "Actions Patients"
+- **Sidickk** : Voir `components/admin/admin-roles.tsx` (rôles et permissions)
+- **Nethania** : Voir `components/layout/pass-sante-app.tsx` (patients et dossier)
 - **Merval** : Voir `styles/improvements.css` pour les styles
-- **Mira** : Voir `utils/interactive-actions.ts` section "Actions Assistant IA"
+- **Mira** : Voir `components/layout/pass-sante-app.tsx` (assistant IA)
 
 ---
 
