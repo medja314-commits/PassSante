@@ -16,6 +16,8 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Badge, Button, Icon, Logo, type IconName } from "@/components/ui";
 import { VitalChart } from "@/components/charts";
+import { VitalInput } from "@/components/patient/vital-input";
+import { validateVital } from "@/data/vital-limits";
 import { PatientAppointments } from "@/components/patient/patient-appointments";
 import { PatientDocuments } from "@/components/patient/patient-documents";
 import { PatientVitals } from "@/components/patient/patient-vitals";
@@ -63,8 +65,8 @@ function Topbar({ onMobileMenu, onNewPatient }: { onMobileMenu?: () => void; onN
     <div className="global-search"><Icon name="search"/><input aria-label="Recherche globale" placeholder="Rechercher un patient par nom ou N° de dossier..." /><kbd>⌘ K</kbd></div>
     <div className="top-actions">
       <Button variant="soft" icon="plus" onClick={onNewPatient}>Nouveau patient</Button>
-      <Button icon="plus" disabled title={soon}>Consultation</Button>
-      <button className="icon-button" aria-label="Notifications" disabled title={soon}><Icon name="bell"/><span className="notification-dot"/></button>
+      <Button icon="plus" unavailable title={soon}>Consultation</Button>
+      <button className="icon-button" aria-label="Notifications" aria-disabled="true" title={soon}><Icon name="bell"/><span className="notification-dot"/></button>
       <div className="mini-avatar">KK</div>
     </div>
   </header>;
@@ -85,7 +87,7 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
   const resultsToValidate = labExams.filter(exam => exam.status === "À valider").length;
   const criticalResults = labExams.filter(exam => exam.status === "Critique").length;
   return <main className="workspace-page">
-    <PageTitle eyebrow="MARDI 17 JUIN 2025" title="Bonjour, Dr. Konan" description="Voici l'essentiel de votre activité clinique aujourd'hui." action={<Button icon="plus" disabled title={soon}>Démarrer une consultation</Button>}/>
+    <PageTitle eyebrow="MARDI 17 JUIN 2025" title="Bonjour, Dr. Konan" description="Voici l'essentiel de votre activité clinique aujourd'hui." action={<Button icon="plus" unavailable title={soon}>Démarrer une consultation</Button>}/>
     <div className="stat-grid">
       <article className="stat-card"><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>Rendez-vous aujourd'hui</small><strong>{appointments.length}</strong><p><em>{upcomingCount}</em> consultations restantes</p></div><span className="stat-spark blue-bars"><i/><i/><i/><i/><i/></span></article>
       <article className="stat-card"><span className="stat-icon green"><Icon name="users"/></span><div><small>Patients suivis</small><strong>{staffPatients.length}</strong><p>Patients de la démonstration</p></div><span className="stat-spark green-bars"><i/><i/><i/><i/><i/></span></article>
@@ -94,7 +96,7 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
     </div>
     <div className="dashboard-grid">
       <section className="card day-schedule">
-        <div className="section-head"><div><h2>Agenda du jour</h2><p>{appointments.length} rendez-vous • {upcomingCount} à venir</p></div><button className="text-link" disabled title={soon}>Voir l'agenda <Icon name="chevron" size={14}/></button></div>
+        <div className="section-head"><div><h2>Agenda du jour</h2><p>{appointments.length} rendez-vous • {upcomingCount} à venir</p></div><button className="text-link" aria-disabled="true" title={soon}>Voir l'agenda <Icon name="chevron" size={14}/></button></div>
         <div className="schedule-list">{appointments.map(appointment => <button className="schedule-row" key={appointment.time} onClick={()=>openPatient(appointment.patientId)}>
           <time>{appointment.time}</time><span className={`schedule-line ${appointment.tone}`}/><span className={`list-avatar ${appointment.tone}`}>{appointment.initials}</span>
           <span className="schedule-person"><strong>{appointment.name}</strong><small>{appointment.detail}</small></span>
@@ -104,15 +106,15 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
       <aside className="dashboard-side">
         <section className="card task-card"><div className="section-head"><div><h2>À traiter</h2><p>Vos priorités cliniques</p></div><Badge tone="red">6 actions</Badge></div>
           <div className="task-list">
-            <button disabled title={soon}><span className="task-check urgent"><Icon name="alert" size={14}/></span><p><strong>{criticalResults} résultat{criticalResults > 1 ? "s" : ""} critique{criticalResults > 1 ? "s" : ""}</strong><small>Biologie • reçus il y a 18 min</small></p><Icon name="chevron" size={14}/></button>
-            <button disabled title={soon}><span className="task-check"><Icon name="file" size={14}/></span><p><strong>5 comptes-rendus à signer</strong><small>Dernière modification hier</small></p><Icon name="chevron" size={14}/></button>
-            <button disabled title={soon}><span className="task-check blue"><Icon name="message" size={14}/></span><p><strong>3 messages patients</strong><small>1 message non lu</small></p><Icon name="chevron" size={14}/></button>
+            <button aria-disabled="true" title={soon}><span className="task-check urgent"><Icon name="alert" size={14}/></span><p><strong>{criticalResults} résultat{criticalResults > 1 ? "s" : ""} critique{criticalResults > 1 ? "s" : ""}</strong><small>Biologie • reçus il y a 18 min</small></p><Icon name="chevron" size={14}/></button>
+            <button aria-disabled="true" title={soon}><span className="task-check"><Icon name="file" size={14}/></span><p><strong>5 comptes-rendus à signer</strong><small>Dernière modification hier</small></p><Icon name="chevron" size={14}/></button>
+            <button aria-disabled="true" title={soon}><span className="task-check blue"><Icon name="message" size={14}/></span><p><strong>3 messages patients</strong><small>1 message non lu</small></p><Icon name="chevron" size={14}/></button>
           </div>
         </section>
         <section className="card occupancy-card"><div className="section-head"><div><h2>Activité de la semaine</h2><p>Consultations réalisées</p></div><strong>42</strong></div><div className="week-bars">{[["LUN","75"],["MAR","92"],["MER","58"],["JEU","82"],["VEN","45"]].map(([day,value])=><div key={day}><span><i className={`bar-${value}`}/></span><small>{day}</small></div>)}</div><div className="occupancy-foot"><span><i/>Objectif hebdomadaire</span><b>84%</b></div></section>
       </aside>
     </div>
-    <section className="card recent-patients"><div className="section-head"><div><h2>Patients récemment consultés</h2><p>Accès rapide aux derniers dossiers</p></div><button className="text-link" disabled title={soon}>Tous les patients <Icon name="chevron" size={14}/></button></div><div className="recent-grid">{staffPatients.slice(0,4).map((patient,index)=><button key={patient.id} onClick={()=>openPatient(patient.id)}><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.reason}</small></span><Badge tone={patient.tone}>{patient.status}</Badge></button>)}</div></section>
+    <section className="card recent-patients"><div className="section-head"><div><h2>Patients récemment consultés</h2><p>Accès rapide aux derniers dossiers</p></div><button className="text-link" aria-disabled="true" title={soon}>Tous les patients <Icon name="chevron" size={14}/></button></div><div className="recent-grid">{staffPatients.slice(0,4).map((patient,index)=><button key={patient.id} onClick={()=>openPatient(patient.id)}><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.reason}</small></span><Badge tone={patient.tone}>{patient.status}</Badge></button>)}</div></section>
   </main>;
 }
 
@@ -136,14 +138,14 @@ function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: 
       <div className="directory-tools">
         <div className="inner-search patient-search"><Icon name="search"/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Rechercher par nom ou N° de dossier..." aria-label="Rechercher un patient"/></div>
         <div className="filter-pills">{["Tous","Suivi actif","À surveiller","Nouveau"].map(item=><button className={filter===item?"active":""} onClick={()=>setFilter(item)} key={item}>{item}</button>)}</div>
-        <Button variant="soft" icon="filter" disabled title={soon}>Plus de filtres</Button>
+        <Button variant="soft" icon="filter" unavailable title={soon}>Plus de filtres</Button>
       </div>
       <div className="data-table patient-directory"><table><thead><tr><th>PATIENT</th><th>N° DE DOSSIER</th><th>DERNIÈRE CONSULTATION</th><th>MOTIF / SUIVI</th><th>PROCHAIN RDV</th><th>STATUT</th><th></th></tr></thead><tbody>{filteredPatients.map((patient,index)=><tr key={patient.id} onClick={()=>openPatient(patient.id)} className="clickable-row">
         <td><div className="directory-patient"><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.age} • {patient.gender}{patient.alert&&<em><Icon name="alert" size={10}/>{patient.alert}</em>}</small></span></div></td>
-        <td><code>{patient.id}</code></td><td>{patient.lastVisit}</td><td><strong>{patient.reason}</strong></td><td>{patient.next}</td><td><Badge tone={patient.tone}>{patient.status}</Badge></td><td><button className="icon-button" aria-label={`Actions pour ${patient.name}`} disabled title={soon} onClick={event=>event.stopPropagation()}><Icon name="more"/></button></td>
+        <td><code>{patient.id}</code></td><td>{patient.lastVisit}</td><td><strong>{patient.reason}</strong></td><td>{patient.next}</td><td><Badge tone={patient.tone}>{patient.status}</Badge></td><td><button className="icon-button" aria-label={`Actions pour ${patient.name}`} aria-disabled="true" title={soon} onClick={event=>event.stopPropagation()}><Icon name="more"/></button></td>
       </tr>)}</tbody></table></div>
       {filteredPatients.length === 0 && <div className="empty-state"><Icon name="search" size={26}/><strong>Aucun patient trouvé</strong><p>Modifiez votre recherche ou vos filtres.</p></div>}
-      <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur {staffPatients.length}</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div>
+      <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur {staffPatients.length}</span><div><button aria-disabled="true" title={soon}>Précédent</button><button className="active" aria-disabled="true" title={soon}>1</button><button aria-disabled="true" title={soon}>2</button><button aria-disabled="true" title={soon}>3</button><button aria-disabled="true" title={soon}>Suivant</button></div></div>
     </section>
   </main>;
 }
@@ -175,7 +177,7 @@ function ExamsOverview({ exams, setExams }: { exams: LabExam[]; setExams: (updat
   };
   const filteredExams = exams.filter(exam => (`${exam.patient} ${exam.exam} ${exam.id}`.toLowerCase().includes(query.toLowerCase())) && (status === "Tous" || exam.status === status));
   return <main className="workspace-page">
-    <PageTitle eyebrow="EXAMENS & LABORATOIRE" title="Résultats et demandes" description="Suivez les examens prescrits et validez les résultats reçus." action={<Button icon="plus" disabled title={soon}>Nouvelle demande</Button>}/>
+    <PageTitle eyebrow="EXAMENS & LABORATOIRE" title="Résultats et demandes" description="Suivez les examens prescrits et validez les résultats reçus." action={<Button icon="plus" unavailable title={soon}>Nouvelle demande</Button>}/>
     {notice && <div className="toast workspace-toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")}><Icon name="x"/></button></div>}
     <div className="lab-stat-grid">
       <article><span className="stat-icon amber"><Icon name="clock"/></span><p><small>En attente</small><strong>{exams.filter(exam => exam.status === "En cours").length}</strong><em>Examens en cours</em></p></article>
@@ -185,14 +187,14 @@ function ExamsOverview({ exams, setExams }: { exams: LabExam[]; setExams: (updat
     </div>
     <div className="lab-layout">
       <section className="card lab-main">
-        <div className="directory-tools lab-tools"><div className="inner-search patient-search"><Icon name="search"/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Patient, examen ou référence..." aria-label="Rechercher un examen"/></div><select value={status} onChange={event=>setStatus(event.target.value)} aria-label="Filtrer par statut"><option>Tous</option><option>Critique</option><option>À valider</option><option>En cours</option><option>Validé</option></select><Button variant="soft" icon="filter" disabled title={soon}>Filtres</Button></div>
-        <div className="data-table lab-table"><table><thead><tr><th>PATIENT</th><th>EXAMEN</th><th>DEMANDÉ LE</th><th>RÉSULTAT</th><th>STATUT</th><th></th></tr></thead><tbody>{filteredExams.map((exam,index)=><tr key={exam.id} className={exam.status==="Critique"?"critical-row":""}><td><div className="directory-patient"><span className={`list-avatar avatar-${index}`}>{exam.initials}</span><span><strong>{exam.patient}</strong><small>{exam.id}</small></span></div></td><td><strong>{exam.exam}</strong><small className="table-subline">{exam.category}</small></td><td>{exam.requested}<small className="table-subline">{exam.received!=="—"?`Reçu ${exam.received}`:"Résultat en attente"}</small></td><td className={exam.status==="Critique"?"critical-value":""}>{exam.result}</td><td><Badge tone={exam.tone}>{exam.status}</Badge></td><td>{exam.status==="À valider" ? <button className="icon-button" onClick={()=>setPendingId(exam.id)} aria-label={`Valider ${exam.exam}`}><Icon name="check"/></button> : exam.status!=="Validé" && <button className="icon-button" disabled title={soon} aria-label={`Ouvrir ${exam.exam}`}><Icon name="chevron"/></button>}</td></tr>)}</tbody></table></div>
-        <div className="pagination"><span>{filteredExams.length} examens affichés sur {exams.length}</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div>
+        <div className="directory-tools lab-tools"><div className="inner-search patient-search"><Icon name="search"/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Patient, examen ou référence..." aria-label="Rechercher un examen"/></div><select value={status} onChange={event=>setStatus(event.target.value)} aria-label="Filtrer par statut"><option>Tous</option><option>Critique</option><option>À valider</option><option>En cours</option><option>Validé</option></select><Button variant="soft" icon="filter" unavailable title={soon}>Filtres</Button></div>
+        <div className="data-table lab-table"><table><thead><tr><th>PATIENT</th><th>EXAMEN</th><th>DEMANDÉ LE</th><th>RÉSULTAT</th><th>STATUT</th><th></th></tr></thead><tbody>{filteredExams.map((exam,index)=><tr key={exam.id} className={exam.status==="Critique"?"critical-row":""}><td><div className="directory-patient"><span className={`list-avatar avatar-${index}`}>{exam.initials}</span><span><strong>{exam.patient}</strong><small>{exam.id}</small></span></div></td><td><strong>{exam.exam}</strong><small className="table-subline">{exam.category}</small></td><td>{exam.requested}<small className="table-subline">{exam.received!=="—"?`Reçu ${exam.received}`:"Résultat en attente"}</small></td><td className={exam.status==="Critique"?"critical-value":""}>{exam.result}</td><td><Badge tone={exam.tone}>{exam.status}</Badge></td><td>{exam.status==="À valider" ? <button className="icon-button" onClick={()=>setPendingId(exam.id)} aria-label={`Valider ${exam.exam}`}><Icon name="check"/></button> : exam.status!=="Validé" && <button className="icon-button" aria-disabled="true" title={soon} aria-label={`Ouvrir ${exam.exam}`}><Icon name="chevron"/></button>}</td></tr>)}</tbody></table></div>
+        <div className="pagination"><span>{filteredExams.length} examens affichés sur {exams.length}</span><div><button aria-disabled="true" title={soon}>Précédent</button><button className="active" aria-disabled="true" title={soon}>1</button><button aria-disabled="true" title={soon}>2</button><button aria-disabled="true" title={soon}>3</button><button aria-disabled="true" title={soon}>Suivant</button></div></div>
       </section>
       <aside className="lab-side">
-        <section className="card critical-panel"><div className="section-head"><div><h2>Alertes critiques</h2><p>À prendre en charge rapidement</p></div><Badge tone="red">{criticalExams.length}</Badge></div>{criticalExams.map(exam=><article key={exam.id}><span className="alert-pulse"/><div><strong>{exam.exam}</strong><p>{exam.patient} • {exam.result}</p><small>{exam.received}</small></div><button disabled title={soon}><Icon name="chevron"/></button></article>)}</section>
+        <section className="card critical-panel"><div className="section-head"><div><h2>Alertes critiques</h2><p>À prendre en charge rapidement</p></div><Badge tone="red">{criticalExams.length}</Badge></div>{criticalExams.map(exam=><article key={exam.id}><span className="alert-pulse"/><div><strong>{exam.exam}</strong><p>{exam.patient} • {exam.result}</p><small>{exam.received}</small></div><button aria-disabled="true" title={soon}><Icon name="chevron"/></button></article>)}</section>
         <section className="card lab-activity"><div className="section-head"><div><h2>Flux laboratoire</h2><p>Aujourd'hui</p></div><Icon name="activity"/></div><div><p><span className="flow-dot green"/><strong>09:05</strong><small>Bilan lipidique reçu</small></p><p><span className="flow-dot blue"/><strong>08:42</strong><small>Troponine transmise au labo</small></p><p><span className="flow-dot purple"/><strong>08:16</strong><small>NFS validée par BioLab</small></p><p><span className="flow-dot neutral"/><strong>07:54</strong><small>3 prélèvements enregistrés</small></p></div></section>
-        <button className="import-result" disabled title={soon}><span><Icon name="download"/></span><strong>Importer un résultat externe</strong><small>PDF, JPG ou PNG • 10 Mo max.</small></button>
+        <button className="import-result" aria-disabled="true" title={soon}><span><Icon name="download"/></span><strong>Importer un résultat externe</strong><small>PDF, JPG ou PNG • 10 Mo max.</small></button>
       </aside>
     </div>
     {pendingExam && <div className="modal-backdrop" onClick={()=>setPendingId(null)}><section className="role-modal" role="dialog" aria-modal="true" aria-labelledby="validate-exam-title" onClick={e=>e.stopPropagation()}>
@@ -247,7 +249,7 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
       <div className="hero-badges">
         <div className="blood"><span>Groupe sanguin</span><strong>{patient.bloodGroup ?? "—"}</strong></div>
         {patient.allergy ? <Badge tone="red"><Icon name="alert" size={15}/>Allergie : {patient.allergy}</Badge> : patient.alert && <Badge tone="amber"><Icon name="alert" size={15}/>{patient.alert}</Badge>}
-        <Button variant="soft" icon="more" disabled title={soon}>Actions</Button>
+        <Button variant="soft" icon="more" unavailable title={soon}>Actions</Button>
       </div>
     </section>
     <div className="tab-bar">{tabs.map(t => <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>{t}{t === "Examens & Labo" && <i>{patientLabItems.length}</i>}</button>)}</div>
@@ -264,13 +266,13 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
 function Consultations() {
   return <div className="record-grid">
     <section className="card timeline-card">
-      <div className="section-head"><div><h2>Historique médical</h2><p>Consultations et comptes-rendus</p></div><Button icon="plus" disabled title={soon}>Nouveau compte-rendu</Button></div>
+      <div className="section-head"><div><h2>Historique médical</h2><p>Consultations et comptes-rendus</p></div><Button icon="plus" unavailable title={soon}>Nouveau compte-rendu</Button></div>
       <div className="timeline">
         <article>
           <div className="timeline-marker"><Icon name="stethoscope" size={16}/></div>
           <div className="timeline-date">AUJOURD'HUI, 09:40</div>
           <div className="consult-card">
-            <div className="consult-head"><div><Badge tone="blue">Consultation</Badge><h3>Suivi hypertension artérielle</h3></div><button className="icon-button" disabled title={soon} aria-label="Plus d'options"><Icon name="more"/></button></div>
+            <div className="consult-head"><div><Badge tone="blue">Consultation</Badge><h3>Suivi hypertension artérielle</h3></div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Plus d'options"><Icon name="more"/></button></div>
             <p>La patiente rapporte une amélioration globale. Tension stabilisée sous traitement. Pas de céphalées ni de vertiges depuis la dernière consultation.</p>
             <div className="diagnosis"><span>DIAGNOSTIC</span><strong>Hypertension essentielle — contrôlée</strong></div>
             <div className="doctor-sign"><span className="mini-avatar">KK</span><span><b>Dr. K. Konan</b><small>Médecine générale</small></span><Badge tone="green"><Icon name="check" size={12}/>Signé</Badge></div>
@@ -292,33 +294,56 @@ function Consultations() {
       </div>
     </section>
     <aside className="right-column">
-      <section className="card"><div className="section-head"><div><h2>Dernières constantes</h2><p>Aujourd'hui à 09:32</p></div><button className="icon-button" disabled title={soon} aria-label="Modifier les constantes"><Icon name="edit"/></button></div>
+      <section className="card"><div className="section-head"><div><h2>Dernières constantes</h2><p>Aujourd'hui à 09:32</p></div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Modifier les constantes"><Icon name="edit"/></button></div>
         <div className="vitals-list">
           <div><span className="vital-icon blue"><Icon name="activity"/></span><p><small>Tension artérielle</small><strong>124/78 <em>mmHg</em></strong></p><Badge tone="green">Normal</Badge></div>
           <div><span className="vital-icon red"><Icon name="heart"/></span><p><small>Fréquence cardiaque</small><strong>72 <em>bpm</em></strong></p><Badge tone="green">Normal</Badge></div>
           <div><span className="vital-icon amber"><Icon name="activity"/></span><p><small>Température</small><strong>36,8 <em>°C</em></strong></p></div>
           <div><span className="vital-icon purple"><Icon name="grid"/></span><p><small>Poids</small><strong>68,4 <em>kg</em></strong></p><span className="trend">− 0,8 kg</span></div>
         </div>
-        <button className="text-link" disabled title={soon}>Voir l'évolution des constantes <Icon name="chevron" size={14}/></button>
+        <button className="text-link" aria-disabled="true" title={soon}>Voir l'évolution des constantes <Icon name="chevron" size={14}/></button>
       </section>
       <section className="card next-card"><div className="section-head"><div><h2>Prochain rendez-vous</h2></div><Badge tone="blue">Confirmé</Badge></div><div className="appointment-date"><strong>24</strong><span>JUIN<small>2025</small></span></div><div className="appointment-info"><p><Icon name="clock"/>09:30 • Suivi médical</p><p><Icon name="map"/>Cabinet 2B — Clinique Centrale</p></div></section>
     </aside>
   </div>;
 }
 
+type QuickKey = "systolic" | "diastolic" | "temperature" | "weight";
+
+// Saisie rapide (pro) : chaque valeur est contrôlée à la frappe. L'enregistrement reste indisponible.
+function QuickVitalEntry() {
+  const [values, setValues] = useState<Record<QuickKey, string>>({ systolic: "", diastolic: "", temperature: "", weight: "" });
+  const [errors, setErrors] = useState<Partial<Record<QuickKey, string>>>({});
+  const update = (field: QuickKey, value: string) => {
+    setValues(current=>({...current,[field]:value}));
+    setErrors(current=>({...current,[field]:validateVital(field, value) ?? undefined}));
+  };
+  return <aside className="card quick-entry"><form noValidate onSubmit={event=>event.preventDefault()}>
+    <h2>Saisie rapide</h2><p>Ajouter les constantes du jour</p>
+    <div className="vital-pair">
+      <VitalInput id="quick-systolic" field="systolic" label="Tension systolique" placeholder="120" step="1" value={values.systolic} error={errors.systolic} onChange={value=>update("systolic",value)}/>
+      <span className="vital-pair-sep" aria-hidden="true">/</span>
+      <VitalInput id="quick-diastolic" field="diastolic" label="Tension diastolique" placeholder="80" step="1" value={values.diastolic} error={errors.diastolic} onChange={value=>update("diastolic",value)}/>
+    </div>
+    <VitalInput id="quick-temperature" field="temperature" placeholder="36,8" step="0.1" value={values.temperature} error={errors.temperature} onChange={value=>update("temperature",value)}/>
+    <VitalInput id="quick-weight" field="weight" placeholder="68,4" step="0.1" value={values.weight} error={errors.weight} onChange={value=>update("weight",value)}/>
+    <Button type="button" icon="plus" unavailable title={soon}>Enregistrer les mesures</Button>
+  </form></aside>;
+}
+
 function ConstantsView() {
-  return <div className="record-grid"><section className="card chart-card"><div className="section-head"><div><h2>Évolution de la tension</h2><p>Mesures des 30 derniers jours</p></div><div><Badge tone="blue">Systolique</Badge> <Badge tone="neutral">Diastolique</Badge></div></div><VitalChart/></section><aside className="card quick-entry"><h2>Saisie rapide</h2><p>Ajouter les constantes du jour</p><label>Tension artérielle<div><input placeholder="120"/><span>/</span><input placeholder="80"/></div></label><label>Température<input placeholder="36,8 °C"/></label><label>Poids<input placeholder="68,4 kg"/></label><Button icon="plus" disabled title={soon}>Enregistrer les mesures</Button></aside></div>;
+  return <div className="record-grid"><section className="card chart-card"><div className="section-head"><div><h2>Évolution de la tension</h2><p>Mesures des 30 derniers jours</p></div><div><Badge tone="blue">Systolique</Badge> <Badge tone="neutral">Diastolique</Badge></div></div><VitalChart/></section><QuickVitalEntry/></div>;
 }
 
 function Prescriptions() {
   const rows = [["Amlodipine","5 mg","1 cp / jour","3 mois","Actif"],["Paracétamol","500 mg","Si douleur, max. 3/j","7 jours","Terminé"],["Vitamine D3","1000 UI","1 dose / jour","6 mois","Actif"]];
-  return <section className="card table-card"><div className="section-head"><div><h2>Prescriptions & traitements</h2><p>Ordonnances actives et historique</p></div><Button icon="plus" disabled title={soon}>Nouvelle ordonnance</Button></div><div className="data-table"><table><thead><tr><th>Médicament</th><th>Dosage</th><th>Posologie</th><th>Durée</th><th>Statut</th><th></th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.slice(0,4).map((c,j)=><td key={j}>{j===0?<strong>{c}</strong>:c}</td>)}<td><Badge tone={r[4]==="Actif"?"green":"neutral"}>{r[4]}</Badge></td><td><Icon name="more"/></td></tr>)}</tbody></table></div></section>;
+  return <section className="card table-card"><div className="section-head"><div><h2>Prescriptions & traitements</h2><p>Ordonnances actives et historique</p></div><Button icon="plus" unavailable title={soon}>Nouvelle ordonnance</Button></div><div className="data-table"><table><thead><tr><th>Médicament</th><th>Dosage</th><th>Posologie</th><th>Durée</th><th>Statut</th><th></th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.slice(0,4).map((c,j)=><td key={j}>{j===0?<strong>{c}</strong>:c}</td>)}<td><Badge tone={r[4]==="Actif"?"green":"neutral"}>{r[4]}</Badge></td><td><Icon name="more"/></td></tr>)}</tbody></table></div></section>;
 }
 
 const patientLabItems = ["Bilan sanguin complet", "Échographie abdominale", "Bilan thyroïdien"];
 
 function LabView({ onRequestExam }: { onRequestExam: () => void }) {
-  return <div className="record-grid"><section className="card table-card"><div className="section-head"><div><h2>Examens & laboratoire</h2><p>Résultats, demandes et documents</p></div><Button icon="plus" onClick={onRequestExam}>Demander un examen</Button></div>{patientLabItems.map((x,i)=><div className="document-row" key={x}><span className="document-icon"><Icon name={i===1?"activity":"flask"}/></span><div><strong>{x}</strong><small>{i===0?"28 mai 2025 • Laboratoire Central":i===1?"Demandé le 10 juin 2025":"12 avril 2025 • BioLab"}</small></div><Badge tone={i===1?"amber":"green"}>{i===1?"En attente":"Validé"}</Badge><button className="icon-button" disabled title={soon} aria-label={`Action pour ${x}`}><Icon name={i===1?"more":"download"}/></button></div>)}</section><aside className="card upload-zone"><span><Icon name="download" size={28}/></span><h2>Importer un résultat</h2><p>Déposez un fichier PDF, JPG ou PNG ici</p><Button variant="soft" disabled title={soon}>Parcourir les fichiers</Button></aside></div>;
+  return <div className="record-grid"><section className="card table-card"><div className="section-head"><div><h2>Examens & laboratoire</h2><p>Résultats, demandes et documents</p></div><Button icon="plus" onClick={onRequestExam}>Demander un examen</Button></div>{patientLabItems.map((x,i)=><div className="document-row" key={x}><span className="document-icon"><Icon name={i===1?"activity":"flask"}/></span><div><strong>{x}</strong><small>{i===0?"28 mai 2025 • Laboratoire Central":i===1?"Demandé le 10 juin 2025":"12 avril 2025 • BioLab"}</small></div><Badge tone={i===1?"amber":"green"}>{i===1?"En attente":"Validé"}</Badge><button className="icon-button" aria-disabled="true" title={soon} aria-label={`Action pour ${x}`}><Icon name={i===1?"more":"download"}/></button></div>)}</section><aside className="card upload-zone"><span><Icon name="download" size={28}/></span><h2>Importer un résultat</h2><p>Déposez un fichier PDF, JPG ou PNG ici</p><Button variant="soft" unavailable title={soon}>Parcourir les fichiers</Button></aside></div>;
 }
 
 function AssistantView() {
@@ -406,7 +431,7 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
     return <AssistantView/>;
   };
   return <div className="pro-app">
-    <div className={mobileOpen ? "sidebar-wrap open" : "sidebar-wrap"}><ProSidebar view={view} setView={(v)=>{setView(v);setMobileOpen(false);onView(v)}} onMode={onMode} toValidate={toValidate}/><button className="sidebar-overlay" onClick={()=>setMobileOpen(false)}/></div>
+    <div className={mobileOpen ? "sidebar-wrap open" : "sidebar-wrap"}><ProSidebar view={view} setView={(v)=>{setView(v);setMobileOpen(false);onView(v)}} onMode={onMode} toValidate={toValidate}/><button className="sidebar-overlay" onClick={()=>setMobileOpen(false)} aria-label="Fermer le menu"/></div>
     <div className="pro-main"><Topbar onMobileMenu={()=>setMobileOpen(true)} onNewPatient={()=>setShowNewPatient(true)}/>{renderView()}</div>
     {showNewPatient && <NewPatientModal close={()=>setShowNewPatient(false)}/>}
   </div>;
@@ -425,17 +450,17 @@ function PatientApp({ onMode, page = "home", onNavigate }: { onMode: (v: "pro" |
       <section className="next-appointment">
         <div className="appointment-top"><div><span className="eyebrow">PROCHAIN RENDEZ-VOUS</span><h2>Consultation de suivi</h2></div><Badge tone="green">Confirmé</Badge></div>
         <div className="appointment-main"><div className="date-block"><strong>24</strong><span>JUIN<small>Mardi • 09:30</small></span></div><div className="physician"><span className="avatar avatar-doctor">KK</span><div><strong>Dr. Koffi Konan</strong><span>Médecin généraliste</span><small><Icon name="map" size={13}/>Clinique Centrale • Cabinet 2B</small></div></div></div>
-        <div className="appointment-actions"><Button variant="soft" icon="edit" disabled title={soon}>Bientôt disponible</Button><Button variant="ghost" icon="message" onClick={()=>setNotice("Clinique Centrale : +225 27 20 00 00 00")}>Contacter</Button><button className="text-link" disabled title={soon}>Voir le trajet <Icon name="chevron" size={14}/></button></div>
+        <div className="appointment-actions"><Button variant="soft" icon="edit" unavailable title={soon}>Bientôt disponible</Button><Button variant="ghost" icon="message" onClick={()=>setNotice("Clinique Centrale : +225 27 20 00 00 00")}>Contacter</Button><button className="text-link" aria-disabled="true" title={soon}>Voir le trajet <Icon name="chevron" size={14}/></button></div>
       </section>
       <div className="patient-grid">
-        <section className="patient-card results-card"><div className="card-title"><span className="round-icon purple"><Icon name="flask"/></span><div><h2>Derniers résultats</h2><p>Vos examens récents</p></div><button className="text-link" onClick={()=>onNavigate("documents")}>Tout voir <Icon name="chevron" size={13}/></button></div><div className="result-item"><span className="doc-thumb"><Icon name="file"/></span><div><strong>Bilan sanguin complet</strong><small>28 mai 2025 • PDF, 1,2 Mo</small></div><Badge tone="green">Disponible</Badge><button className="icon-button" disabled title={soon} aria-label="Télécharger"><Icon name="download"/></button></div><div className="result-item"><span className="doc-thumb blue"><Icon name="activity"/></span><div><strong>Électrocardiogramme</strong><small>12 avril 2025 • PDF, 860 Ko</small></div><Badge tone="green">Disponible</Badge><button className="icon-button" disabled title={soon} aria-label="Télécharger"><Icon name="download"/></button></div></section>
+        <section className="patient-card results-card"><div className="card-title"><span className="round-icon purple"><Icon name="flask"/></span><div><h2>Derniers résultats</h2><p>Vos examens récents</p></div><button className="text-link" onClick={()=>onNavigate("documents")}>Tout voir <Icon name="chevron" size={13}/></button></div><div className="result-item"><span className="doc-thumb"><Icon name="file"/></span><div><strong>Bilan sanguin complet</strong><small>28 mai 2025 • PDF, 1,2 Mo</small></div><Badge tone="green">Disponible</Badge><button className="icon-button" aria-disabled="true" title={soon} aria-label="Télécharger"><Icon name="download"/></button></div><div className="result-item"><span className="doc-thumb blue"><Icon name="activity"/></span><div><strong>Électrocardiogramme</strong><small>12 avril 2025 • PDF, 860 Ko</small></div><Badge tone="green">Disponible</Badge><button className="icon-button" aria-disabled="true" title={soon} aria-label="Télécharger"><Icon name="download"/></button></div></section>
         <section className="patient-card personal-vitals"><div className="card-title"><span className="round-icon blue"><Icon name="activity"/></span><div><h2>Mes constantes</h2><p>Tension artérielle • 30 jours</p></div><select aria-label="Période"><option>30 jours</option><option>7 jours</option></select></div><div className="current-value"><strong>124<small>/78</small></strong><span>mmHg<Badge tone="green">Dans la norme</Badge></span></div><VitalChart patient/><Button icon="plus" onClick={()=>onNavigate("constantes")}>Saisir ma tension / température</Button></section>
       </div>
-      <section className="health-tip"><span><Icon name="heart" size={26}/></span><div><strong>Le conseil santé du jour</strong><p>Une marche de 30 minutes aide à maintenir une bonne santé cardiovasculaire.</p></div><button disabled title={soon} aria-label="Fermer le conseil"><Icon name="x"/></button></section>
+      <section className="health-tip"><span><Icon name="heart" size={26}/></span><div><strong>Le conseil santé du jour</strong><p>Une marche de 30 minutes aide à maintenir une bonne santé cardiovasculaire.</p></div><button aria-disabled="true" title={soon} aria-label="Fermer le conseil"><Icon name="x"/></button></section>
     </main>;
   };
   return <div className="patient-app">
-    <header className="patient-top"><Logo/><div><button className="icon-button" disabled title={soon} aria-label="Notifications"><Icon name="bell"/><span className="notification-dot"/></button><button className="patient-avatar" onClick={()=>onMode("pro")}>AM</button></div></header>
+    <header className="patient-top"><Logo/><div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Notifications"><Icon name="bell"/><span className="notification-dot"/></button><button className="patient-avatar" onClick={()=>onMode("pro")}>AM</button></div></header>
     {renderPatientPage()}
     <nav className="bottom-nav">{[
       ["home","Accueil","home"],["rdv","Mes RDV","calendar"],["documents","Documents","file"],["constantes","Constantes","activity"],["assistant","Assistant IA","message"]
@@ -444,7 +469,7 @@ function PatientApp({ onMode, page = "home", onNavigate }: { onMode: (v: "pro" |
 }
 
 function PatientAssistant({ onBack }: { onBack: () => void }) {
-  return <div className="patient-assistant"><header><button className="icon-button back" onClick={onBack}><Icon name="chevron"/></button><Logo/><span className="patient-avatar">AM</span></header><div className="warning-banner"><Icon name="alert"/><p><strong>Information importante</strong>L'assistant ne remplace pas un diagnostic médical. En cas d'urgence, contactez les secours.</p></div><main><div className="assistant-welcome"><span className="ai-symbol large"><Icon name="sparkles" size={30}/></span><h1>Comment puis-je vous aider ?</h1><p>Posez une question générale sur votre santé ou la préparation de votre prochain rendez-vous.</p></div><div className="question-chips"><button disabled title={soon}>Comment préparer ma consultation ?</button><button disabled title={soon}>Comprendre ma tension artérielle</button><button disabled title={soon}>Conseils pour mieux dormir</button></div></main><div className="patient-chatbox"><textarea placeholder="Écrivez votre question ici..." aria-label="Votre question"/><button disabled title={soon} aria-label="Envoyer"><Icon name="send"/></button><small>Ne partagez pas d'information sensible dans vos messages.</small></div></div>;
+  return <div className="patient-assistant"><header><button className="icon-button back" onClick={onBack} aria-label="Retour à l'accueil"><Icon name="chevron"/></button><Logo/><span className="patient-avatar">AM</span></header><div className="warning-banner"><Icon name="alert"/><p><strong>Information importante</strong>L'assistant ne remplace pas un diagnostic médical. En cas d'urgence, contactez les secours.</p></div><main><div className="assistant-welcome"><span className="ai-symbol large"><Icon name="sparkles" size={30}/></span><h1>Comment puis-je vous aider ?</h1><p>Posez une question générale sur votre santé ou la préparation de votre prochain rendez-vous.</p></div><div className="question-chips"><button aria-disabled="true" title={soon}>Comment préparer ma consultation ?</button><button aria-disabled="true" title={soon}>Comprendre ma tension artérielle</button><button aria-disabled="true" title={soon}>Conseils pour mieux dormir</button></div></main><div className="patient-chatbox"><textarea placeholder="Écrivez votre question ici..." aria-label="Votre question"/><button aria-disabled="true" title={soon} aria-label="Envoyer"><Icon name="send"/></button><small>Ne partagez pas d'information sensible dans vos messages.</small></div></div>;
 }
 
 const users = [
@@ -459,15 +484,15 @@ function AdminApp({ onMode, initialPage = "users", onPage }: { onMode: (v: "pro"
   const [page, setPage] = useState(initialPage);
   const [modal, setModal] = useState(false);
   const changePage = (nextPage: string) => { setPage(nextPage); onPage(nextPage); };
-  return <div className="admin-app"><aside className="admin-sidebar"><Logo dark/><nav><span className="nav-caption">ADMINISTRATION</span><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles & permissions</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Journaux d'audit</button></nav><div className="admin-profile"><div className="mini-avatar">SK</div><div><strong>Sophie Kouassi</strong><span>Super administratrice</span></div><button onClick={()=>onMode("pro")}><Icon name="chevron"/></button></div></aside><div className="admin-main"><header className="admin-topbar"><div className="global-search"><Icon name="search"/><input placeholder="Rechercher dans l'administration..."/></div><button className="icon-button" disabled title={soon} aria-label="Notifications"><Icon name="bell"/></button></header><nav className="admin-mobile-nav"><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Audit</button></nav>{page==="logs"?<AdminAuditLogs/>:page==="roles"?<AdminRoles/>:<UsersPage openModal={()=>setModal(true)}/>}</div>{modal&&<RoleModal close={()=>setModal(false)}/>}</div>;
+  return <div className="admin-app"><aside className="admin-sidebar"><Logo dark/><nav><span className="nav-caption">ADMINISTRATION</span><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles & permissions</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Journaux d'audit</button></nav><div className="admin-profile"><div className="mini-avatar">SK</div><div><strong>Sophie Kouassi</strong><span>Super administratrice</span></div><button onClick={()=>onMode("pro")} aria-label="Passer à l'espace professionnel"><Icon name="chevron"/></button></div></aside><div className="admin-main"><header className="admin-topbar"><div className="global-search"><Icon name="search"/><input placeholder="Rechercher dans l'administration..."/></div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Notifications"><Icon name="bell"/></button></header><nav className="admin-mobile-nav"><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Audit</button></nav>{page==="logs"?<AdminAuditLogs/>:page==="roles"?<AdminRoles/>:<UsersPage openModal={()=>setModal(true)}/>}</div>{modal&&<RoleModal close={()=>setModal(false)}/>}</div>;
 }
 
 function UsersPage({openModal}:{openModal:()=>void}) {
-  return <main className="admin-content"><div className="page-heading"><div><span className="eyebrow">ADMINISTRATION</span><h1>Gestion des utilisateurs</h1><p>Gérez les comptes, les rôles et les autorisations d'accès.</p></div><Button icon="plus" disabled title={soon}>Inviter un utilisateur</Button></div><div className="metrics-row"><div><span className="metric-icon blue"><Icon name="users"/></span><p><small>Utilisateurs actifs</small><strong>1 248</strong><em>+12 ce mois</em></p></div><div><span className="metric-icon green"><Icon name="stethoscope"/></span><p><small>Personnel hospitalier</small><strong>86</strong><em>7 rôles distincts</em></p></div><div><span className="metric-icon purple"><Icon name="shield"/></span><p><small>Administrateurs</small><strong>8</strong><em>2 super admins</em></p></div></div><section className="card admin-table"><div className="table-tools"><div className="inner-search"><Icon name="search"/><input placeholder="Nom, email ou identifiant..."/></div><Button variant="soft" icon="filter" disabled title={soon}>Filtrer</Button><span>1 248 utilisateurs</span></div><div className="data-table"><table><thead><tr><th>UTILISATEUR</th><th>RÔLE</th><th>STATUT</th><th>DERNIÈRE CONNEXION</th><th></th></tr></thead><tbody>{users.map((u,i)=><tr key={u[1]}><td><div className="user-cell"><span className={`user-avatar avatar-${i}`}>{u[4]}</span><div><strong>{u[0]}</strong><small>{u[1]}</small></div></div></td><td><Badge tone={u[2]==="Patient"?"blue":u[2]==="Administrateur"?"purple":"neutral"}>{u[2]}</Badge></td><td><span className={`status ${u[3]==="Actif"?"active":"suspended"}`}><i/>{u[3]}</span></td><td>{i===1?"Aujourd'hui, 09:42":i===2?"Aujourd'hui, 08:15":i===0?"Hier, 17:36":"12 juin 2025"}</td><td><button className="icon-button" onClick={openModal}><Icon name="more"/></button></td></tr>)}</tbody></table></div><div className="pagination"><span>Affichage de 1 à 5 sur 1 248</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div></section></main>;
+  return <main className="admin-content"><div className="page-heading"><div><span className="eyebrow">ADMINISTRATION</span><h1>Gestion des utilisateurs</h1><p>Gérez les comptes, les rôles et les autorisations d'accès.</p></div><Button icon="plus" unavailable title={soon}>Inviter un utilisateur</Button></div><div className="metrics-row"><div><span className="metric-icon blue"><Icon name="users"/></span><p><small>Utilisateurs actifs</small><strong>1 248</strong><em>+12 ce mois</em></p></div><div><span className="metric-icon green"><Icon name="stethoscope"/></span><p><small>Personnel hospitalier</small><strong>86</strong><em>7 rôles distincts</em></p></div><div><span className="metric-icon purple"><Icon name="shield"/></span><p><small>Administrateurs</small><strong>8</strong><em>2 super admins</em></p></div></div><section className="card admin-table"><div className="table-tools"><div className="inner-search"><Icon name="search"/><input placeholder="Nom, email ou identifiant..."/></div><Button variant="soft" icon="filter" unavailable title={soon}>Filtrer</Button><span>1 248 utilisateurs</span></div><div className="data-table"><table><thead><tr><th>UTILISATEUR</th><th>RÔLE</th><th>STATUT</th><th>DERNIÈRE CONNEXION</th><th></th></tr></thead><tbody>{users.map((u,i)=><tr key={u[1]}><td><div className="user-cell"><span className={`user-avatar avatar-${i}`}>{u[4]}</span><div><strong>{u[0]}</strong><small>{u[1]}</small></div></div></td><td><Badge tone={u[2]==="Patient"?"blue":u[2]==="Administrateur"?"purple":"neutral"}>{u[2]}</Badge></td><td><span className={`status ${u[3]==="Actif"?"active":"suspended"}`}><i/>{u[3]}</span></td><td>{i===1?"Aujourd'hui, 09:42":i===2?"Aujourd'hui, 08:15":i===0?"Hier, 17:36":"12 juin 2025"}</td><td><button className="icon-button" onClick={openModal} aria-label={`Modifier les rôles de ${u[0]}`}><Icon name="more"/></button></td></tr>)}</tbody></table></div><div className="pagination"><span>Affichage de 1 à 5 sur 1 248</span><div><button aria-disabled="true" title={soon}>Précédent</button><button className="active" aria-disabled="true" title={soon}>1</button><button aria-disabled="true" title={soon}>2</button><button aria-disabled="true" title={soon}>3</button><button aria-disabled="true" title={soon}>Suivant</button></div></div></section></main>;
 }
 
 function RoleModal({close}:{close:()=>void}) {
-  return <div className="modal-backdrop" onClick={close}><section className="role-modal" onClick={e=>e.stopPropagation()}><div className="modal-head"><div><h2>Modifier les rôles</h2><p>Dr. Koffi Konan • k.konan@passsante.ci</p></div><button className="icon-button" onClick={close}><Icon name="x"/></button></div><div className="modal-body"><label className="role-option selected"><input type="checkbox" defaultChecked/><span><strong>Personnel hospitalier</strong><small>Accès aux dossiers patients et outils cliniques</small></span><Icon name="check"/></label><label className="role-option"><input type="checkbox"/><span><strong>Administrateur</strong><small>Gestion des utilisateurs et configuration</small></span></label></div><div className="modal-actions"><Button variant="ghost" onClick={close}>Annuler</Button><Button disabled title={soon}>Enregistrer les modifications</Button></div></section></div>;
+  return <div className="modal-backdrop" onClick={close}><section className="role-modal" onClick={e=>e.stopPropagation()}><div className="modal-head"><div><h2>Modifier les rôles</h2><p>Dr. Koffi Konan • k.konan@passsante.ci</p></div><button className="icon-button" onClick={close}><Icon name="x"/></button></div><div className="modal-body"><label className="role-option selected"><input type="checkbox" defaultChecked/><span><strong>Personnel hospitalier</strong><small>Accès aux dossiers patients et outils cliniques</small></span><Icon name="check"/></label><label className="role-option"><input type="checkbox"/><span><strong>Administrateur</strong><small>Gestion des utilisateurs et configuration</small></span></label></div><div className="modal-actions"><Button variant="ghost" onClick={close}>Annuler</Button><Button unavailable title={soon}>Enregistrer les modifications</Button></div></section></div>;
 }
 
 export type PassSanteArea = "pro" | "patient" | "patient-assistant" | "admin";

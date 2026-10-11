@@ -31,7 +31,7 @@ export function StaffAgenda({ onOpenPatient }: { onOpenPatient: (patientId: stri
   } : {};
 
   return <main className="workspace-page staff-agenda-page">
-    <div className="workspace-heading"><div><span className="eyebrow">AGENDA CLINIQUE</span><h1>Agenda & rendez-vous</h1><p>Visualisez votre planning et les rendez-vous programmés.</p></div><Button icon="plus" disabled title={soon}>Nouveau rendez-vous</Button></div>
+    <div className="workspace-heading"><div><span className="eyebrow">AGENDA CLINIQUE</span><h1>Agenda & rendez-vous</h1><p>Visualisez votre planning et les rendez-vous programmés.</p></div><Button icon="plus" unavailable title={soon}>Nouveau rendez-vous</Button></div>
     <div className="agenda-summary">
       <article><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>Rendez-vous aujourd'hui</small><strong>12</strong><p>4 consultations restantes</p></div></article>
       <article><span className="stat-icon green"><Icon name="check"/></span><div><small>Confirmés</small><strong>10</strong><p>83% du planning</p></div></article>
@@ -41,8 +41,8 @@ export function StaffAgenda({ onOpenPatient }: { onOpenPatient: (patientId: stri
     <div className="agenda-layout">
       <section className="card agenda-calendar">
         <div className="agenda-toolbar">
-          <div className="agenda-date-nav"><button className="icon-button" aria-label="Semaine précédente" disabled title={soon}><Icon name="chevron"/></button><button className="today-button" disabled title={soon}>Aujourd'hui</button><button className="icon-button next" aria-label="Semaine suivante" disabled title={soon}><Icon name="chevron"/></button><h2>16 – 20 juin 2025</h2></div>
-          <div className="agenda-view-switch"><button disabled title={soon}>Jour</button><button className="active" disabled title={soon}>Semaine</button><button disabled title={soon}>Mois</button></div>
+          <div className="agenda-date-nav"><button className="icon-button" aria-label="Semaine précédente" aria-disabled="true" title={soon}><Icon name="chevron"/></button><button className="today-button" aria-disabled="true" title={soon}>Aujourd'hui</button><button className="icon-button next" aria-label="Semaine suivante" aria-disabled="true" title={soon}><Icon name="chevron"/></button><h2>16 – 20 juin 2025</h2></div>
+          <div className="agenda-view-switch"><button aria-disabled="true" title={soon}>Jour</button><button className="active" aria-disabled="true" title={soon}>Semaine</button><button aria-disabled="true" title={soon}>Mois</button></div>
         </div>
         <div className="agenda-week-scroll">
           <div className="agenda-week">
@@ -58,8 +58,8 @@ export function StaffAgenda({ onOpenPatient }: { onOpenPatient: (patientId: stri
         </div>
       </section>
       <aside className="agenda-side">
-        <section className="card mini-calendar"><div className="mini-calendar-head"><button disabled title={soon} aria-label="Mois précédent"><Icon name="chevron" size={14}/></button><strong>Juin 2025</strong><button className="next" disabled title={soon} aria-label="Mois suivant"><Icon name="chevron" size={14}/></button></div><div className="mini-calendar-grid">{["L","M","M","J","V","S","D"].map((day,index)=><b key={`${day}-${index}`}>{day}</b>)}{monthDays.flat().map((date,index)=><span key={`${date}-${index}`} className={`${index<6||index>34?"outside":""} ${date==="17"&&index===22?"selected":""}`}>{date}</span>)}</div></section>
-        <section className="card today-list"><div className="section-head"><div><h2>Aujourd'hui</h2><p>12 rendez-vous • 4 à venir</p></div><Badge tone="blue">17 juin</Badge></div>{dayAppointments.map(appointment=><article key={appointment.time} {...openable(appointment.patientId)}><time>{appointment.time}</time><span className={`list-avatar ${appointment.tone}`}>{appointment.initials}</span><div><strong>{appointment.name}</strong><p>{appointment.reason}</p><small><Icon name="map" size={11}/>{appointment.room}</small></div><Badge tone={appointment.tone}>{appointment.time==="08:30"?"Urgent":"Confirmé"}</Badge></article>)}<button className="agenda-all-link" disabled title={soon}>Voir tous les rendez-vous <Icon name="chevron" size={14}/></button></section>
+        <section className="card mini-calendar"><div className="mini-calendar-head"><button aria-disabled="true" title={soon} aria-label="Mois précédent"><Icon name="chevron" size={14}/></button><strong>Juin 2025</strong><button className="next" aria-disabled="true" title={soon} aria-label="Mois suivant"><Icon name="chevron" size={14}/></button></div><div className="mini-calendar-grid">{["L","M","M","J","V","S","D"].map((day,index)=><b key={`${day}-${index}`}>{day}</b>)}{monthDays.flat().map((date,index)=><span key={`${date}-${index}`} className={`${index<6||index>34?"outside":""} ${date==="17"&&index===22?"selected":""}`}>{date}</span>)}</div></section>
+        <section className="card today-list"><div className="section-head"><div><h2>Aujourd'hui</h2><p>12 rendez-vous • 4 à venir</p></div><Badge tone="blue">17 juin</Badge></div>{dayAppointments.map(appointment=><article key={appointment.time} {...openable(appointment.patientId)}><time>{appointment.time}</time><span className={`list-avatar ${appointment.tone}`}>{appointment.initials}</span><div><strong>{appointment.name}</strong><p>{appointment.reason}</p><small><Icon name="map" size={11}/>{appointment.room}</small></div><Badge tone={appointment.tone}>{appointment.time==="08:30"?"Urgent":"Confirmé"}</Badge></article>)}<button className="agenda-all-link" aria-disabled="true" title={soon}>Voir tous les rendez-vous <Icon name="chevron" size={14}/></button></section>
         <section className="card agenda-legend"><strong>Légende</strong><div><span><i className="blue"/>Consultation</span><span><i className="green"/>Suivi</span><span><i className="red"/>Urgence</span><span><i className="purple"/>Contrôle</span></div></section>
       </aside>
     </div>

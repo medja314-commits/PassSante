@@ -2,44 +2,58 @@
 
 import { useState, type FormEvent } from "react";
 import { vitalMeasurements as initialMeasurements } from "@/data/mock-data";
+import { validateVital, vitalLimits, type VitalKey } from "@/data/vital-limits";
 import type { VitalMeasurement } from "@/types";
 import { Badge, Button, Icon } from "@/components/ui";
 import { VitalChart } from "@/components/charts";
 import { PatientPageHeader } from "./patient-page-header";
+import { VitalInput } from "./vital-input";
 
 type VitalForm = { systolic: string; diastolic: string; heartRate: string; temperature: string; weight: string; measuredAt: string };
+type VitalErrors = Partial<Record<keyof VitalForm, string>>;
 const emptyForm: VitalForm = { systolic: "", diastolic: "", heartRate: "", temperature: "", weight: "", measuredAt: "" };
 
 export function PatientVitals() {
   const [period, setPeriod] = useState("30 jours");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<VitalForm>(emptyForm);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<VitalErrors>({});
   const [notice, setNotice] = useState("");
   const [measurements, setMeasurements] = useState(initialMeasurements);
   const latest = measurements[0];
-  const updateField = (field: keyof VitalForm, value: string) => setForm(current=>({...current,[field]:value}));
+  const updateField = (field: keyof VitalForm, value: string) => {
+    setForm(current=>({...current,[field]:value}));
+    setErrors(current=>({...current,[field]:undefined}));
+  };
   const saveMeasurement = (event: FormEvent) => {
     event.preventDefault();
-    const values = [form.systolic,form.diastolic,form.heartRate,form.temperature,form.weight];
-    if (values.some(value=>!value) || !form.measuredAt) { setError("Renseignez toutes les valeurs et la date de la mesure."); return; }
-    const systolic = Number(form.systolic), diastolic = Number(form.diastolic);
-    if (systolic < 70 || systolic > 250 || diastolic < 40 || diastolic > 150) { setError("Vérifiez les valeurs de pression artérielle saisies."); return; }
-    const measurement: VitalMeasurement = { id:`vital-${Date.now()}`, measuredAt:new Date(form.measuredAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}), systolic, diastolic, heartRate:Number(form.heartRate), temperature:Number(form.temperature), weight:Number(form.weight), source:"patient" };
-    setMeasurements(current=>[measurement,...current]); setForm(emptyForm); setError(""); setShowForm(false); setNotice("Mesure ajoutée à l'historique de cette session uniquement.");
+    const found: VitalErrors = {};
+    (Object.keys(vitalLimits) as VitalKey[]).forEach(key => {
+      const message = validateVital(key, form[key]);
+      if (message) found[key] = message;
+    });
+    if (!form.measuredAt) found.measuredAt = "Indiquez la date et l'heure de la mesure.";
+    if (Object.keys(found).length) { setErrors(found); return; }
+    const measurement: VitalMeasurement = { id:`vital-${Date.now()}`, measuredAt:new Date(form.measuredAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}), systolic:Number(form.systolic), diastolic:Number(form.diastolic), heartRate:Number(form.heartRate), temperature:Number(form.temperature.replace(",",".")), weight:Number(form.weight.replace(",",".")), source:"patient" };
+    setMeasurements(current=>[measurement,...current]); setForm(emptyForm); setErrors({}); setShowForm(false); setNotice("Mesure ajoutée à l'historique de cette session uniquement.");
   };
+  const hasErrors = Object.keys(errors).length > 0;
 
   return <main className="patient-content patient-subpage">
     <PatientPageHeader title="Mes constantes" description="Suivez l'évolution de vos principales constantes de santé." action={<Button icon="plus" onClick={()=>setShowForm(true)}>Ajouter une mesure</Button>}/>
     {notice && <div className="toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")} aria-label="Fermer"><Icon name="x"/></button></div>}
-    {showForm && <section className="card vital-entry-card"><div className="section-head"><div><h2>Ajouter une mesure</h2><p>Saisissez les valeurs relevées avec votre matériel personnel.</p></div><button className="icon-button" onClick={()=>setShowForm(false)} aria-label="Fermer"><Icon name="x"/></button></div><form className="vital-entry-form" onSubmit={saveMeasurement}>
-      <label>Pression systolique<input type="number" value={form.systolic} onChange={event=>updateField("systolic",event.target.value)} placeholder="124"/><small>mmHg</small></label>
-      <label>Pression diastolique<input type="number" value={form.diastolic} onChange={event=>updateField("diastolic",event.target.value)} placeholder="78"/><small>mmHg</small></label>
-      <label>Fréquence cardiaque<input type="number" value={form.heartRate} onChange={event=>updateField("heartRate",event.target.value)} placeholder="72"/><small>bpm</small></label>
-      <label>Température<input type="number" step="0.1" value={form.temperature} onChange={event=>updateField("temperature",event.target.value)} placeholder="36,8"/><small>°C</small></label>
-      <label>Poids<input type="number" step="0.1" value={form.weight} onChange={event=>updateField("weight",event.target.value)} placeholder="68,4"/><small>kg</small></label>
-      <label>Date et heure<input type="datetime-local" value={form.measuredAt} onChange={event=>updateField("measuredAt",event.target.value)}/></label>
-      <div className="vital-form-submit">{error&&<p className="form-error"><Icon name="alert" size={14}/>{error}</p>}<Button type="submit">Enregistrer</Button></div>
+    {showForm && <section className="card vital-entry-card"><div className="section-head"><div><h2>Ajouter une mesure</h2><p>Saisissez les valeurs relevées avec votre matériel personnel.</p></div><button className="icon-button" onClick={()=>setShowForm(false)} aria-label="Fermer"><Icon name="x"/></button></div><form className="vital-entry-form" onSubmit={saveMeasurement} noValidate>
+      <VitalInput id="vital-systolic" field="systolic" placeholder="124" step="1" value={form.systolic} error={errors.systolic} onChange={value=>updateField("systolic",value)}/>
+      <VitalInput id="vital-diastolic" field="diastolic" placeholder="78" step="1" value={form.diastolic} error={errors.diastolic} onChange={value=>updateField("diastolic",value)}/>
+      <VitalInput id="vital-heart-rate" field="heartRate" placeholder="72" step="1" value={form.heartRate} error={errors.heartRate} onChange={value=>updateField("heartRate",value)}/>
+      <VitalInput id="vital-temperature" field="temperature" placeholder="36,8" step="0.1" value={form.temperature} error={errors.temperature} onChange={value=>updateField("temperature",value)}/>
+      <VitalInput id="vital-weight" field="weight" placeholder="68,4" step="0.1" value={form.weight} error={errors.weight} onChange={value=>updateField("weight",value)}/>
+      <div className="vital-field">
+        <label htmlFor="vital-measured-at">Date et heure</label>
+        <input id="vital-measured-at" type="datetime-local" value={form.measuredAt} onChange={event=>updateField("measuredAt",event.target.value)} aria-invalid={errors.measuredAt ? true : undefined} aria-describedby={errors.measuredAt ? "vital-measured-at-error" : undefined}/>
+        {errors.measuredAt && <p id="vital-measured-at-error" className="field-error"><Icon name="alert" size={12}/>{errors.measuredAt}</p>}
+      </div>
+      <div className="vital-form-submit">{hasErrors&&<p className="form-error"><Icon name="alert" size={14}/>Corrigez les champs signalés avant d'enregistrer.</p>}<Button type="submit">Enregistrer</Button></div>
     </form></section>}
     <div className="latest-vitals">
       <article><span className="vital-icon blue"><Icon name="activity"/></span><div><small>Pression artérielle</small><strong>{latest.systolic}<em>/{latest.diastolic}</em></strong><p>mmHg</p></div><Badge tone="green">Dans la norme</Badge></article>

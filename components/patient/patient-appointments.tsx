@@ -18,7 +18,7 @@ function AppointmentRow({ appointment, history = false }: { appointment: Patient
   return <article className="patient-appointment-row">
     <div className="appointment-mini-date"><strong>{appointment.day}</strong><span>{appointment.month}<small>{appointment.year}</small></span></div>
     <div className="appointment-row-main"><div><strong>{appointment.doctor}</strong><span>{appointment.specialty}</span></div><p>{appointment.reason}</p><small><Icon name="clock" size={13}/>{appointment.time}<Icon name="map" size={13}/>{appointment.facility} • {appointment.room}</small></div>
-    <div className="appointment-row-actions"><Badge tone={appointmentTone(appointment.status)}>{appointment.status}</Badge>{history && appointment.reportAvailable && <button className="text-link" disabled title="Bientôt disponible">Voir le compte rendu <Icon name="chevron" size={13}/></button>}</div>
+    <div className="appointment-row-actions"><Badge tone={appointmentTone(appointment.status)}>{appointment.status}</Badge>{history && appointment.reportAvailable && <button className="text-link" aria-disabled="true" title="Bientôt disponible">Voir le compte rendu <Icon name="chevron" size={13}/></button>}</div>
   </article>;
 }
 
@@ -30,13 +30,13 @@ export function PatientAppointments() {
   const otherAppointments = upcomingAppointments.slice(1);
 
   return <main className="patient-content patient-subpage">
-    <PatientPageHeader title="Mes rendez-vous" description="Consultez et gérez vos rendez-vous avec vos professionnels de santé." action={<Button icon="plus" disabled title="Bientôt disponible">Bientôt disponible</Button>}/>
+    <PatientPageHeader title="Mes rendez-vous" description="Consultez et gérez vos rendez-vous avec vos professionnels de santé." action={<Button icon="plus" unavailable title="Bientôt disponible">Bientôt disponible</Button>}/>
     {notice && <div className="toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")} aria-label="Fermer"><Icon name="x"/></button></div>}
     {loading ? <PatientLoadingState/> : <>
       {nextAppointment ? <section className="patient-next-rdv">
         <div className="patient-next-rdv-top"><div><span className="eyebrow">PROCHAIN RENDEZ-VOUS</span><h2>{nextAppointment.reason}</h2></div><Badge tone="green"><Icon name="check" size={12}/>{nextAppointment.status}</Badge></div>
         <div className="patient-next-rdv-body"><div className="rdv-large-date"><strong>{nextAppointment.day}</strong><span>{nextAppointment.month}<small>{nextAppointment.year} • {nextAppointment.time}</small></span></div><div className="rdv-doctor"><span className="avatar avatar-doctor">KK</span><div><strong>{nextAppointment.doctor}</strong><span>{nextAppointment.specialty}</span><p><Icon name="map" size={14}/>{nextAppointment.facility} • {nextAppointment.room}</p></div></div><div className="rdv-reason"><small>MOTIF</small><strong>{nextAppointment.reason}</strong></div></div>
-        <div className="patient-next-rdv-actions"><Button variant="soft" icon="edit" disabled title="Bientôt disponible">Bientôt disponible</Button><Button variant="ghost" icon="message" onClick={()=>setNotice("Clinique Centrale : +225 27 20 00 00 00")}>Contacter l'établissement</Button><p><Icon name="alert" size={13}/>Pour annuler, contactez directement l'établissement ou le personnel médical.</p></div>
+        <div className="patient-next-rdv-actions"><Button variant="soft" icon="edit" unavailable title="Bientôt disponible">Bientôt disponible</Button><Button variant="ghost" icon="message" onClick={()=>setNotice("Clinique Centrale : +225 27 20 00 00 00")}>Contacter l'établissement</Button><p><Icon name="alert" size={13}/>Pour annuler, contactez directement l'établissement ou le personnel médical.</p></div>
       </section> : <PatientEmptyState icon={<Icon name="calendar" size={28}/>} title="Aucun rendez-vous à venir" description="Vos prochains rendez-vous apparaîtront ici."/>}
       <div className="patient-section-tabs"><button className={tab==="upcoming"?"active":""} onClick={()=>setTab("upcoming")}>À venir <span>{otherAppointments.length}</span></button><button className={tab==="history"?"active":""} onClick={()=>setTab("history")}>Historique <span>{appointmentHistory.length}</span></button></div>
       <section className="card patient-rdv-list"><div className="section-head"><div><h2>{tab==="upcoming"?"Rendez-vous à venir":"Rendez-vous passés"}</h2><p>{tab==="upcoming"?"Vos rendez-vous planifiés après le prochain rendez-vous":"Historique de vos consultations et rendez-vous"}</p></div></div>

@@ -29,7 +29,7 @@ function DocumentRow({ document }: { document: MedicalDocument }) {
     <div className="medical-doc-meta"><small>DATE</small><span>{document.date}</span></div>
     <div className="medical-doc-meta"><small>{document.source==="official"?"AUTEUR":"AJOUTÉ"}</small><span>{document.author ?? "Ajouté sur cet appareil"}</span></div>
     <Badge tone={documentTone(document.status)}>{document.status}</Badge>
-    <div className="medical-doc-actions"><button className="icon-button" aria-label={`Voir ${document.name}`} disabled title="Bientôt disponible"><Icon name="search"/></button>{document.source==="official" && <button className="icon-button" aria-label={`Télécharger ${document.name}`} disabled title="Bientôt disponible"><Icon name="download"/></button>}</div>
+    <div className="medical-doc-actions"><button className="icon-button" aria-label={`Voir ${document.name}`} aria-disabled="true" title="Bientôt disponible"><Icon name="search"/></button>{document.source==="official" && <button className="icon-button" aria-label={`Télécharger ${document.name}`} aria-disabled="true" title="Bientôt disponible"><Icon name="download"/></button>}</div>
   </article>;
 }
 
