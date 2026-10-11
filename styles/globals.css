@@ -813,7 +813,8 @@ code { font-family: "SFMono-Regular",Consolas,monospace; font-size: 12px; }
   .mobile-menu { display: grid; place-items: center; border: 0; background: transparent; color: var(--ink); }
   .top-actions .button span { display: none; }
   .top-actions .button { width: 38px; padding: 0; }
-  .record-grid { grid-template-columns: 1fr; }
+  .record-grid { grid-template-columns: minmax(0, 1fr); }
+  .record-grid > * { min-width: 0; }
   .table-card { grid-column: auto; }
   .hero-badges .blood, .hero-badges .button { display: none; }
   .patient-grid { grid-template-columns: 1fr; }
@@ -994,3 +995,18 @@ code { font-family: "SFMono-Regular",Consolas,monospace; font-size: 12px; }
 .recent-grid small { white-space: normal; overflow: visible; text-overflow: clip; }
 .directory-patient em { white-space: nowrap; }
 .lab-tools select, .audit-filters select, .log-filters select, .permission-rows select { height: auto; min-height: 36px; }
+
+/* Tableaux en cartes empilées sous 640 px (lot 2-bis) : chaque ligne devient une carte, avec le libellé de la colonne */
+@media (max-width: 640px) {
+  .stack-mobile { overflow: visible; }
+  .stack-mobile table { min-width: 0; }
+  .stack-mobile thead { display: none; }
+  .stack-mobile table, .stack-mobile tbody, .stack-mobile tr, .stack-mobile td { display: block; width: 100%; }
+  .stack-mobile tr { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .stack-mobile td { border: 0; padding: 4px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; }
+  .stack-mobile td::before { content: attr(data-label); color: var(--muted); font-weight: 700; text-align: left; flex: 0 0 auto; }
+  .stack-mobile td.stack-head { display: block; text-align: left; }
+  .stack-mobile td.stack-head::before, .stack-mobile td.stack-action::before { content: none; }
+  .stack-mobile td.stack-action { justify-content: flex-end; }
+  .stack-mobile td.stack-action button { margin-top: 4px; }
+}
