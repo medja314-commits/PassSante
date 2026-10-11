@@ -123,6 +123,11 @@ export function monthGrid(now: Date = new Date()) {
   });
 }
 
+// Nombre formaté en français : 1 248
+export function formatCount(value: number): string {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0");
+}
+
 export function isWeekend(now: Date = new Date()): boolean {
   return now.getDay() === 0 || now.getDay() === 6;
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { adminRoles } from "@/data/mock-data";
+import { formatCount } from "@/data/dates";
 import type { PermissionLevel, RoleDefinition, UserRole } from "@/types";
 import { Badge, Button, Icon } from "@/components/ui";
 
@@ -40,7 +41,7 @@ export function AdminRoles() {
     {notice && <div className="toast admin-toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")} aria-label="Fermer"><Icon name="x"/></button></div>}
     <div className="role-stats">
       <article><span className="metric-icon blue"><Icon name="key"/></span><div><small>Rôles configurés</small><strong>{roles.length}</strong><p>Rôles système protégés</p></div></article>
-      <article><span className="metric-icon green"><Icon name="users"/></span><div><small>Utilisateurs assignés</small><strong>{totalUsers.toLocaleString("fr-FR")}</strong><p>Comptes rattachés à un rôle</p></div></article>
+      <article><span className="metric-icon green"><Icon name="users"/></span><div><small>Utilisateurs assignés</small><strong>{formatCount(totalUsers)}</strong><p>Comptes rattachés à un rôle</p></div></article>
       <article><span className="metric-icon purple"><Icon name="shield"/></span><div><small>Permissions actives</small><strong>{activePermissions}</strong><p>Permissions accordées (hors « Aucun accès »)</p></div></article>
     </div>
     <div className="roles-layout">

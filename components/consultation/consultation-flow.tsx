@@ -53,7 +53,7 @@ export function ConsultationFlow({ onClose, onOpenPatient }: { onClose: () => vo
     setStep("done");
   };
 
-  return <div className="modal-backdrop" onClick={onClose}><section className="consult-dialog" role="dialog" aria-modal="true" aria-labelledby="consult-title" onClick={event=>event.stopPropagation()}>
+  return <div className="modal-backdrop" onClick={onClose}><section className="modal-dialog modal-wide" role="dialog" aria-modal="true" aria-labelledby="consult-title" onClick={event=>event.stopPropagation()}>
     <div className="modal-head"><div><h2 id="consult-title">Nouvelle consultation</h2><p>{step === "patient" ? "Étape 1 sur 2 — choisir le patient" : step === "form" ? `Étape 2 sur 2 — ${patient?.name} • ${patient?.id}` : "Consultation enregistrée"}</p></div><button className="icon-button" onClick={onClose} aria-label="Fermer"><Icon name="x"/></button></div>
 
     {step === "patient" && <div className="modal-form">

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "@/styles/globals.css";
-import "@/styles/improvements.css";
 import { SessionProvider } from "@/components/layout/session-context";
 
 // Polices chargées par next/font (pas de feuille externe) : exposées en variables CSS, avec repli system-ui.
