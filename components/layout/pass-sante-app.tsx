@@ -36,7 +36,7 @@ const proNav: { id: string; label: string; icon: IconName }[] = [
   { id: "assistant", label: "Assistant IA (RAG)", icon: "sparkles" },
 ];
 
-function ProSidebar({ view, setView, onMode }: { view: string; setView: (v: string) => void; onMode: (v: "patient" | "admin") => void }) {
+function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setView: (v: string) => void; onMode: (v: "patient" | "admin") => void; toValidate: number }) {
   return <aside className="pro-sidebar">
     <Logo dark />
     <div className="doctor-card">
@@ -46,7 +46,7 @@ function ProSidebar({ view, setView, onMode }: { view: string; setView: (v: stri
     </div>
     <nav className="side-nav" aria-label="Navigation principale">
       <span className="nav-caption">ESPACE DE TRAVAIL</span>
-      {proNav.map(item => <button key={item.id} onClick={() => setView(item.id)} className={view === item.id || (item.id === "patient" && view === "patient-record") ? "active" : ""}><Icon name={item.icon}/><span>{item.label}</span>{item.id === "examens" && <i>8</i>}</button>)}
+      {proNav.map(item => <button key={item.id} onClick={() => setView(item.id)} className={view === item.id || (item.id === "patient" && view === "patient-record") ? "active" : ""}><Icon name={item.icon}/><span>{item.label}</span>{item.id === "examens" && <i>{toValidate}</i>}</button>)}
     </nav>
     <div className="sidebar-footer">
       <span className="nav-caption">CHANGER D'ESPACE</span>
@@ -81,17 +81,20 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
     { time: "11:00", initials: "FT", name: "Fatou Traoré", type: "Consultation prénatale", detail: "Suivi grossesse • Cabinet 3A", tone: "green" as const, patientId: "PS-2024-0934" },
     { time: "14:30", initials: "JB", name: "Jean-Baptiste Koffi", type: "Contrôle diabète", detail: "Résultats biologiques • Cabinet 2B", tone: "purple" as const, patientId: "PS-2023-0621" },
   ];
+  const upcomingCount = appointments.filter(appointment => appointment.time > "09:52").length; // heure affichée dans la démonstration
+  const resultsToValidate = labExams.filter(exam => exam.status === "À valider").length;
+  const criticalResults = labExams.filter(exam => exam.status === "Critique").length;
   return <main className="workspace-page">
     <PageTitle eyebrow="MARDI 17 JUIN 2025" title="Bonjour, Dr. Konan" description="Voici l'essentiel de votre activité clinique aujourd'hui." action={<Button icon="plus" disabled title={soon}>Démarrer une consultation</Button>}/>
     <div className="stat-grid">
-      <article className="stat-card"><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>Rendez-vous aujourd'hui</small><strong>12</strong><p><em>4</em> consultations restantes</p></div><span className="stat-spark blue-bars"><i/><i/><i/><i/><i/></span></article>
-      <article className="stat-card"><span className="stat-icon green"><Icon name="users"/></span><div><small>Patients suivis</small><strong>247</strong><p><em>+8</em> ce mois-ci</p></div><span className="stat-spark green-bars"><i/><i/><i/><i/><i/></span></article>
-      <article className="stat-card"><span className="stat-icon amber"><Icon name="flask"/></span><div><small>Résultats à valider</small><strong>8</strong><p><b>2 prioritaires</b></p></div><Badge tone="amber">À traiter</Badge></article>
+      <article className="stat-card"><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>Rendez-vous aujourd'hui</small><strong>{appointments.length}</strong><p><em>{upcomingCount}</em> consultations restantes</p></div><span className="stat-spark blue-bars"><i/><i/><i/><i/><i/></span></article>
+      <article className="stat-card"><span className="stat-icon green"><Icon name="users"/></span><div><small>Patients suivis</small><strong>{staffPatients.length}</strong><p>Patients de la démonstration</p></div><span className="stat-spark green-bars"><i/><i/><i/><i/><i/></span></article>
+      <article className="stat-card"><span className="stat-icon amber"><Icon name="flask"/></span><div><small>Résultats à valider</small><strong>{resultsToValidate}</strong><p><b>{criticalResults} prioritaire{criticalResults > 1 ? "s" : ""}</b></p></div><Badge tone="amber">À traiter</Badge></article>
       <article className="stat-card"><span className="stat-icon purple"><Icon name="file"/></span><div><small>Comptes-rendus</small><strong>5</strong><p>À finaliser aujourd'hui</p></div><Badge tone="purple">Brouillons</Badge></article>
     </div>
     <div className="dashboard-grid">
       <section className="card day-schedule">
-        <div className="section-head"><div><h2>Agenda du jour</h2><p>12 rendez-vous • 4 à venir</p></div><button className="text-link" disabled title={soon}>Voir l'agenda <Icon name="chevron" size={14}/></button></div>
+        <div className="section-head"><div><h2>Agenda du jour</h2><p>{appointments.length} rendez-vous • {upcomingCount} à venir</p></div><button className="text-link" disabled title={soon}>Voir l'agenda <Icon name="chevron" size={14}/></button></div>
         <div className="schedule-list">{appointments.map(appointment => <button className="schedule-row" key={appointment.time} onClick={()=>openPatient(appointment.patientId)}>
           <time>{appointment.time}</time><span className={`schedule-line ${appointment.tone}`}/><span className={`list-avatar ${appointment.tone}`}>{appointment.initials}</span>
           <span className="schedule-person"><strong>{appointment.name}</strong><small>{appointment.detail}</small></span>
@@ -101,7 +104,7 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
       <aside className="dashboard-side">
         <section className="card task-card"><div className="section-head"><div><h2>À traiter</h2><p>Vos priorités cliniques</p></div><Badge tone="red">6 actions</Badge></div>
           <div className="task-list">
-            <button disabled title={soon}><span className="task-check urgent"><Icon name="alert" size={14}/></span><p><strong>2 résultats critiques</strong><small>Biologie • reçus il y a 18 min</small></p><Icon name="chevron" size={14}/></button>
+            <button disabled title={soon}><span className="task-check urgent"><Icon name="alert" size={14}/></span><p><strong>{criticalResults} résultat{criticalResults > 1 ? "s" : ""} critique{criticalResults > 1 ? "s" : ""}</strong><small>Biologie • reçus il y a 18 min</small></p><Icon name="chevron" size={14}/></button>
             <button disabled title={soon}><span className="task-check"><Icon name="file" size={14}/></span><p><strong>5 comptes-rendus à signer</strong><small>Dernière modification hier</small></p><Icon name="chevron" size={14}/></button>
             <button disabled title={soon}><span className="task-check blue"><Icon name="message" size={14}/></span><p><strong>3 messages patients</strong><small>1 message non lu</small></p><Icon name="chevron" size={14}/></button>
           </div>
@@ -124,10 +127,10 @@ function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: 
   return <main className="workspace-page">
     <PageTitle eyebrow="DOSSIERS MÉDICAUX" title="Patients" description="Consultez et gérez les dossiers de vos patients." action={<Button icon="plus" onClick={onNewPatient}>Nouveau patient</Button>}/>
     <div className="patient-summary-strip">
-      <div><span className="summary-icon blue"><Icon name="users"/></span><p><strong>247</strong><small>Patients suivis</small></p></div>
+      <div><span className="summary-icon blue"><Icon name="users"/></span><p><strong>{staffPatients.length}</strong><small>Patients suivis</small></p></div>
       <div><span className="summary-icon green"><Icon name="check"/></span><p><strong>18</strong><small>Consultés ce mois</small></p></div>
       <div><span className="summary-icon amber"><Icon name="clock"/></span><p><strong>7</strong><small>Suivis à planifier</small></p></div>
-      <div><span className="summary-icon red"><Icon name="alert"/></span><p><strong>3</strong><small>Points de vigilance</small></p></div>
+      <div><span className="summary-icon red"><Icon name="alert"/></span><p><strong>{staffPatients.filter(patient => patient.alert).length}</strong><small>Points de vigilance</small></p></div>
     </div>
     <section className="card directory-card">
       <div className="directory-tools">
@@ -140,7 +143,7 @@ function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: 
         <td><code>{patient.id}</code></td><td>{patient.lastVisit}</td><td><strong>{patient.reason}</strong></td><td>{patient.next}</td><td><Badge tone={patient.tone}>{patient.status}</Badge></td><td><button className="icon-button" aria-label={`Actions pour ${patient.name}`} disabled title={soon} onClick={event=>event.stopPropagation()}><Icon name="more"/></button></td>
       </tr>)}</tbody></table></div>
       {filteredPatients.length === 0 && <div className="empty-state"><Icon name="search" size={26}/><strong>Aucun patient trouvé</strong><p>Modifiez votre recherche ou vos filtres.</p></div>}
-      <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur 247</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div>
+      <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur {staffPatients.length}</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div>
     </section>
   </main>;
 }
@@ -154,12 +157,15 @@ const labExams = [
   { id: "IMG-08412", patient: "Oumar Diabaté", initials: "OD", exam: "Radiographie lombaire", category: "Imagerie", requested: "12 juin, 10:00", received: "13 juin, 12:45", status: "À valider", tone: "amber" as const, result: "Compte-rendu reçu" },
 ];
 
-function ExamsOverview() {
+type LabExam = (typeof labExams)[number];
+
+function ExamsOverview({ exams, setExams }: { exams: LabExam[]; setExams: (update: (current: LabExam[]) => LabExam[]) => void }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Tous");
   const [notice, setNotice] = useState("");
-  const [exams, setExams] = useState(labExams);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const toValidate = exams.filter(exam => exam.status === "À valider").length;
+  const criticalExams = exams.filter(exam => exam.status === "Critique");
   const pendingExam = exams.find(exam => exam.id === pendingId);
   const validateExam = (id: string) => {
     const validated = exams.find(exam => exam.id === id);
@@ -172,19 +178,19 @@ function ExamsOverview() {
     <PageTitle eyebrow="EXAMENS & LABORATOIRE" title="Résultats et demandes" description="Suivez les examens prescrits et validez les résultats reçus." action={<Button icon="plus" disabled title={soon}>Nouvelle demande</Button>}/>
     {notice && <div className="toast workspace-toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")}><Icon name="x"/></button></div>}
     <div className="lab-stat-grid">
-      <article><span className="stat-icon amber"><Icon name="clock"/></span><p><small>En attente</small><strong>14</strong><em>6 résultats attendus aujourd'hui</em></p></article>
-      <article><span className="stat-icon blue"><Icon name="flask"/></span><p><small>À valider</small><strong>8</strong><em>Depuis votre dernière connexion</em></p></article>
-      <article className="critical"><span className="stat-icon red"><Icon name="alert"/></span><p><small>Résultats critiques</small><strong>2</strong><em>Action médicale requise</em></p><Badge tone="red">Prioritaire</Badge></article>
-      <article><span className="stat-icon green"><Icon name="check"/></span><p><small>Validés ce mois</small><strong>126</strong><em>+18% par rapport à mai</em></p></article>
+      <article><span className="stat-icon amber"><Icon name="clock"/></span><p><small>En attente</small><strong>{exams.filter(exam => exam.status === "En cours").length}</strong><em>Examens en cours</em></p></article>
+      <article><span className="stat-icon blue"><Icon name="flask"/></span><p><small>À valider</small><strong>{toValidate}</strong><em>Action requise</em></p></article>
+      <article className="critical"><span className="stat-icon red"><Icon name="alert"/></span><p><small>Résultats critiques</small><strong>{criticalExams.length}</strong><em>Action médicale requise</em></p><Badge tone="red">Prioritaire</Badge></article>
+      <article><span className="stat-icon green"><Icon name="check"/></span><p><small>Validés</small><strong>{exams.filter(exam => exam.status === "Validé").length}</strong><em>Dans cette liste</em></p></article>
     </div>
     <div className="lab-layout">
       <section className="card lab-main">
         <div className="directory-tools lab-tools"><div className="inner-search patient-search"><Icon name="search"/><input value={query} onChange={event=>setQuery(event.target.value)} placeholder="Patient, examen ou référence..." aria-label="Rechercher un examen"/></div><select value={status} onChange={event=>setStatus(event.target.value)} aria-label="Filtrer par statut"><option>Tous</option><option>Critique</option><option>À valider</option><option>En cours</option><option>Validé</option></select><Button variant="soft" icon="filter" disabled title={soon}>Filtres</Button></div>
         <div className="data-table lab-table"><table><thead><tr><th>PATIENT</th><th>EXAMEN</th><th>DEMANDÉ LE</th><th>RÉSULTAT</th><th>STATUT</th><th></th></tr></thead><tbody>{filteredExams.map((exam,index)=><tr key={exam.id} className={exam.status==="Critique"?"critical-row":""}><td><div className="directory-patient"><span className={`list-avatar avatar-${index}`}>{exam.initials}</span><span><strong>{exam.patient}</strong><small>{exam.id}</small></span></div></td><td><strong>{exam.exam}</strong><small className="table-subline">{exam.category}</small></td><td>{exam.requested}<small className="table-subline">{exam.received!=="—"?`Reçu ${exam.received}`:"Résultat en attente"}</small></td><td className={exam.status==="Critique"?"critical-value":""}>{exam.result}</td><td><Badge tone={exam.tone}>{exam.status}</Badge></td><td>{exam.status==="À valider" ? <button className="icon-button" onClick={()=>setPendingId(exam.id)} aria-label={`Valider ${exam.exam}`}><Icon name="check"/></button> : exam.status!=="Validé" && <button className="icon-button" disabled title={soon} aria-label={`Ouvrir ${exam.exam}`}><Icon name="chevron"/></button>}</td></tr>)}</tbody></table></div>
-        <div className="pagination"><span>{filteredExams.length} examens affichés sur 148</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div>
+        <div className="pagination"><span>{filteredExams.length} examens affichés sur {exams.length}</span><div><button disabled title={soon}>Précédent</button><button className="active" disabled title={soon}>1</button><button disabled title={soon}>2</button><button disabled title={soon}>3</button><button disabled title={soon}>Suivant</button></div></div>
       </section>
       <aside className="lab-side">
-        <section className="card critical-panel"><div className="section-head"><div><h2>Alertes critiques</h2><p>À prendre en charge rapidement</p></div><Badge tone="red">2</Badge></div><article><span className="alert-pulse"/><div><strong>Troponine élevée</strong><p>Yao Kouamé • 68 ng/L</p><small>Reçu il y a 18 minutes</small></div><button disabled title={soon}><Icon name="chevron"/></button></article><article><span className="alert-pulse"/><div><strong>Potassium critique</strong><p>Adama Bamba • 6,2 mmol/L</p><small>Reçu il y a 42 minutes</small></div><button disabled title={soon}><Icon name="chevron"/></button></article></section>
+        <section className="card critical-panel"><div className="section-head"><div><h2>Alertes critiques</h2><p>À prendre en charge rapidement</p></div><Badge tone="red">{criticalExams.length}</Badge></div>{criticalExams.map(exam=><article key={exam.id}><span className="alert-pulse"/><div><strong>{exam.exam}</strong><p>{exam.patient} • {exam.result}</p><small>{exam.received}</small></div><button disabled title={soon}><Icon name="chevron"/></button></article>)}</section>
         <section className="card lab-activity"><div className="section-head"><div><h2>Flux laboratoire</h2><p>Aujourd'hui</p></div><Icon name="activity"/></div><div><p><span className="flow-dot green"/><strong>09:05</strong><small>Bilan lipidique reçu</small></p><p><span className="flow-dot blue"/><strong>08:42</strong><small>Troponine transmise au labo</small></p><p><span className="flow-dot purple"/><strong>08:16</strong><small>NFS validée par BioLab</small></p><p><span className="flow-dot neutral"/><strong>07:54</strong><small>3 prélèvements enregistrés</small></p></div></section>
         <button className="import-result" disabled title={soon}><span><Icon name="download"/></span><strong>Importer un résultat externe</strong><small>PDF, JPG ou PNG • 10 Mo max.</small></button>
       </aside>
@@ -244,7 +250,7 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
         <Button variant="soft" icon="more" disabled title={soon}>Actions</Button>
       </div>
     </section>
-    <div className="tab-bar">{tabs.map(t => <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>{t}{t === "Examens & Labo" && <i>3</i>}</button>)}</div>
+    <div className="tab-bar">{tabs.map(t => <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>{t}{t === "Examens & Labo" && <i>{patientLabItems.length}</i>}</button>)}</div>
     {!hasRecordDetails ? <section className="card empty-state"><Icon name="file" size={26}/><strong>Détails non disponibles</strong><p>Le détail des consultations, constantes et examens de ce dossier n'est pas disponible dans cette démonstration.</p></section> : <>
       {tab === "Consultations & CR" && <Consultations/>}
       {tab === "Constantes" && <ConstantsView/>}
@@ -309,8 +315,10 @@ function Prescriptions() {
   return <section className="card table-card"><div className="section-head"><div><h2>Prescriptions & traitements</h2><p>Ordonnances actives et historique</p></div><Button icon="plus" disabled title={soon}>Nouvelle ordonnance</Button></div><div className="data-table"><table><thead><tr><th>Médicament</th><th>Dosage</th><th>Posologie</th><th>Durée</th><th>Statut</th><th></th></tr></thead><tbody>{rows.map((r,i)=><tr key={i}>{r.slice(0,4).map((c,j)=><td key={j}>{j===0?<strong>{c}</strong>:c}</td>)}<td><Badge tone={r[4]==="Actif"?"green":"neutral"}>{r[4]}</Badge></td><td><Icon name="more"/></td></tr>)}</tbody></table></div></section>;
 }
 
+const patientLabItems = ["Bilan sanguin complet", "Échographie abdominale", "Bilan thyroïdien"];
+
 function LabView({ onRequestExam }: { onRequestExam: () => void }) {
-  return <div className="record-grid"><section className="card table-card"><div className="section-head"><div><h2>Examens & laboratoire</h2><p>Résultats, demandes et documents</p></div><Button icon="plus" onClick={onRequestExam}>Demander un examen</Button></div>{["Bilan sanguin complet","Échographie abdominale","Bilan thyroïdien"].map((x,i)=><div className="document-row" key={x}><span className="document-icon"><Icon name={i===1?"activity":"flask"}/></span><div><strong>{x}</strong><small>{i===0?"28 mai 2025 • Laboratoire Central":i===1?"Demandé le 10 juin 2025":"12 avril 2025 • BioLab"}</small></div><Badge tone={i===1?"amber":"green"}>{i===1?"En attente":"Validé"}</Badge><button className="icon-button" disabled title={soon} aria-label={`Action pour ${x}`}><Icon name={i===1?"more":"download"}/></button></div>)}</section><aside className="card upload-zone"><span><Icon name="download" size={28}/></span><h2>Importer un résultat</h2><p>Déposez un fichier PDF, JPG ou PNG ici</p><Button variant="soft" disabled title={soon}>Parcourir les fichiers</Button></aside></div>;
+  return <div className="record-grid"><section className="card table-card"><div className="section-head"><div><h2>Examens & laboratoire</h2><p>Résultats, demandes et documents</p></div><Button icon="plus" onClick={onRequestExam}>Demander un examen</Button></div>{patientLabItems.map((x,i)=><div className="document-row" key={x}><span className="document-icon"><Icon name={i===1?"activity":"flask"}/></span><div><strong>{x}</strong><small>{i===0?"28 mai 2025 • Laboratoire Central":i===1?"Demandé le 10 juin 2025":"12 avril 2025 • BioLab"}</small></div><Badge tone={i===1?"amber":"green"}>{i===1?"En attente":"Validé"}</Badge><button className="icon-button" disabled title={soon} aria-label={`Action pour ${x}`}><Icon name={i===1?"more":"download"}/></button></div>)}</section><aside className="card upload-zone"><span><Icon name="download" size={28}/></span><h2>Importer un résultat</h2><p>Déposez un fichier PDF, JPG ou PNG ici</p><Button variant="soft" disabled title={soon}>Parcourir les fichiers</Button></aside></div>;
 }
 
 function AssistantView() {
@@ -324,26 +332,27 @@ function AssistantView() {
     setDraft("");
   };
   return <main className="assistant-page">
-    <div className="assistant-title"><div><span className="ai-symbol"><Icon name="sparkles"/></span><div><h1>Assistant clinique IA</h1><p>Dossier d'Aminata Mensah • Sources médicales vérifiées</p></div></div><Badge tone="green"><span className="pulse"/>Dossier synchronisé</Badge></div>
+    <div className="assistant-title"><div><span className="ai-symbol"><Icon name="sparkles"/></span><div><h1>Assistant clinique IA</h1><p>Dossier d'Aminata Mensah • Données fictives</p></div></div><Badge tone="green"><span className="pulse"/>Démonstration</Badge></div>
+    <div className="warning-banner"><Icon name="alert"/><p><strong>Mode démonstration :</strong> réponses préenregistrées, ne pas utiliser pour une décision clinique.</p></div>
     <div className="split-chat">
       <section className="chat-panel">
         <div className="chat-scroll">
-          <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Assistant PassSanté</b><p>Bonjour Dr. Konan. Je peux analyser le dossier d'Aminata Mensah. Que souhaitez-vous savoir ?</p></div></div>
+          <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Assistant PassSanté</b><p>Bonjour Dr. Konan. Cette démonstration affiche des réponses préenregistrées sur le dossier d'Aminata Mensah.</p></div></div>
           <div className="user-message"><p>Peux-tu me résumer l'évolution de sa tension et les traitements actuels ?</p></div>
-          <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Synthèse générée</b><div className="ai-answer"><p>La tension d'Aminata s'est <strong>progressivement stabilisée</strong> au cours des 8 dernières semaines, passant d'une moyenne de 142/91 mmHg à <strong>124/78 mmHg</strong> lors de la dernière mesure.<sup>1</sup></p><p>Son traitement actuel comprend :</p><ul><li><strong>Amlodipine 5 mg</strong> — 1 comprimé par jour<sup>2</sup></li><li><strong>Vitamine D3 1000 UI</strong> — 1 dose par jour<sup>3</sup></li></ul><div className="ai-note"><Icon name="check"/>Aucune interaction médicamenteuse identifiée dans le dossier.</div></div></div></div>
+          <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Réponse préenregistrée</b><div className="ai-answer"><p>La tension d'Aminata s'est <strong>progressivement stabilisée</strong> au cours des 8 dernières semaines, passant d'une moyenne de 142/91 mmHg à <strong>124/78 mmHg</strong> lors de la dernière mesure.<sup>1</sup></p><p>Son traitement actuel comprend :</p><ul><li><strong>Amlodipine 5 mg</strong> — 1 comprimé par jour<sup>2</sup></li><li><strong>Vitamine D3 1000 UI</strong> — 1 dose par jour<sup>3</sup></li></ul><div className="ai-note"><Icon name="check"/>Interactions médicamenteuses : non évaluées dans cette démonstration.</div></div></div></div>
           {messages.map((message,index) => <div className="chat-exchange" key={`${message}-${index}`}>
             <div className="user-message"><p>{message}</p></div>
-            <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Assistant PassSanté</b><div className="ai-answer"><p>J'ai analysé votre demande à partir des éléments autorisés du dossier d'Aminata Mensah.</p><p>Les dernières données disponibles ne montrent pas de nouvelle alerte clinique. La tension est stabilisée à <strong>124/78 mmHg</strong> et le traitement actif reste inchangé.<sup>1</sup></p><div className="ai-note"><Icon name="file" size={14}/>Réponse fondée sur les constantes et prescriptions du dossier.</div></div></div></div>
+            <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Assistant PassSanté</b><div className="ai-answer"><p>Réponse préenregistrée : elle n'a pas été générée à partir de votre question.</p><p>Exemple affiché à titre illustratif : la tension de référence est <strong>124/78 mmHg</strong> et le traitement actif est inchangé.<sup>1</sup></p><div className="ai-note"><Icon name="file" size={14}/>Démonstration : aucune donnée réelle n'est consultée.</div></div></div></div>
           </div>)}
         </div>
         <div className="suggestions"><button type="button" onClick={()=>setDraft("Prépare une synthèse pour la prochaine consultation.")}>Préparer la prochaine consultation</button><button type="button" onClick={()=>setDraft("Signale-moi les dernières valeurs anormales du dossier.")}>Signaler les valeurs anormales</button></div>
-        <form className="chat-input" onSubmit={sendMessage}><textarea value={draft} onChange={event=>setDraft(event.target.value)} aria-label="Message" placeholder="Interroger le dossier médical..."/><button type="submit" aria-label="Envoyer" disabled={!draft.trim()}><Icon name="send"/></button><small><Icon name="lock" size={12}/>Les réponses sont basées uniquement sur le dossier patient</small></form>
+        <form className="chat-input" onSubmit={sendMessage}><textarea value={draft} onChange={event=>setDraft(event.target.value)} aria-label="Message" placeholder="Interroger le dossier médical..."/><button type="submit" aria-label="Envoyer" disabled={!draft.trim()}><Icon name="send"/></button><small><Icon name="lock" size={12}/>Mode démonstration : réponses préenregistrées</small></form>
       </section>
-      <aside className="sources-panel"><div className="sources-head"><div><h2>Références & sources</h2><p>3 éléments cités dans la réponse</p></div><Icon name="file"/></div>
+      <aside className="sources-panel"><div className="sources-head"><div><h2>Références & sources</h2><p>3 exemples de sources (démonstration)</p></div><Icon name="file"/></div>
         <div className="source-card selected"><span className="source-number">1</span><div className="source-type"><Icon name="activity" size={14}/>CONSTANTES</div><strong>Évolution tension artérielle</strong><p>« TA 124/78 mmHg, pouls 72 bpm. Amélioration par rapport à la mesure précédente... »</p><small>10 juin 2025, 09:32</small></div>
         <div className="source-card"><span className="source-number">2</span><div className="source-type"><Icon name="file" size={14}/>ORDONNANCE</div><strong>Prescription du 12 avril</strong><p>« Amlodipine 5 mg, 1 comprimé par voie orale le matin, pendant 3 mois. »</p><small>Dr. K. Konan • Signée</small></div>
         <div className="source-card"><span className="source-number">3</span><div className="source-type"><Icon name="file" size={14}/>ORDONNANCE</div><strong>Supplémentation vitamine D</strong><p>« Vitamine D3 1000 UI, 1 dose par jour pendant 6 mois. »</p><small>Dr. K. Konan • Signée</small></div>
-        <div className="privacy-note"><Icon name="shield"/><p><strong>Données confidentielles</strong><br/>Accès journalisé conformément à la politique de sécurité.</p></div>
+        <div className="privacy-note"><Icon name="shield"/><p><strong>Données fictives</strong><br/>Aucun accès réel n'est journalisé en démonstration.</p></div>
       </aside>
     </div>
   </main>;
@@ -385,17 +394,19 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
   const [view, setView] = useState(initialView);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showNewPatient, setShowNewPatient] = useState(false);
+  const [exams, setExams] = useState(labExams);
+  const toValidate = exams.filter(exam => exam.status === "À valider").length;
   const patient = patientId ? getPatientById(patientId) : undefined;
   const renderView = () => {
     if (view === "dashboard") return <DashboardView openPatient={onOpenPatient}/>;
     if (view === "patient") return <PatientsView openPatient={onOpenPatient} onNewPatient={()=>setShowNewPatient(true)}/>;
     if (view === "patient-record") return patient ? <PatientRecord key={patient.id} patient={patient}/> : <main className="content"><section className="card empty-state"><Icon name="search" size={26}/><strong>Dossier introuvable</strong><p>Aucun dossier ne correspond à cet identifiant.</p></section></main>;
     if (view === "agenda") return <StaffAgenda onOpenPatient={onOpenPatient}/>;
-    if (view === "examens") return <ExamsOverview/>;
+    if (view === "examens") return <ExamsOverview exams={exams} setExams={setExams}/>;
     return <AssistantView/>;
   };
   return <div className="pro-app">
-    <div className={mobileOpen ? "sidebar-wrap open" : "sidebar-wrap"}><ProSidebar view={view} setView={(v)=>{setView(v);setMobileOpen(false);onView(v)}} onMode={onMode}/><button className="sidebar-overlay" onClick={()=>setMobileOpen(false)}/></div>
+    <div className={mobileOpen ? "sidebar-wrap open" : "sidebar-wrap"}><ProSidebar view={view} setView={(v)=>{setView(v);setMobileOpen(false);onView(v)}} onMode={onMode} toValidate={toValidate}/><button className="sidebar-overlay" onClick={()=>setMobileOpen(false)}/></div>
     <div className="pro-main"><Topbar onMobileMenu={()=>setMobileOpen(true)} onNewPatient={()=>setShowNewPatient(true)}/>{renderView()}</div>
     {showNewPatient && <NewPatientModal close={()=>setShowNewPatient(false)}/>}
   </div>;

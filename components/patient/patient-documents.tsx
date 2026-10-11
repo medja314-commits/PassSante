@@ -27,7 +27,7 @@ function DocumentRow({ document }: { document: MedicalDocument }) {
     <span className={`medical-doc-icon ${document.source}`}><Icon name={documentIcon(document.category)}/></span>
     <div className="medical-doc-name"><strong>{document.name}</strong><span>{document.category} • {document.size}</span>{document.rejectionReason && <p><Icon name="alert" size={12}/>{document.rejectionReason}</p>}</div>
     <div className="medical-doc-meta"><small>DATE</small><span>{document.date}</span></div>
-    <div className="medical-doc-meta"><small>{document.source==="official"?"AUTEUR":"TRANSMISSION"}</small><span>{document.author ?? "Envoyé au personnel médical"}</span></div>
+    <div className="medical-doc-meta"><small>{document.source==="official"?"AUTEUR":"AJOUTÉ"}</small><span>{document.author ?? "Ajouté sur cet appareil"}</span></div>
     <Badge tone={documentTone(document.status)}>{document.status}</Badge>
     <div className="medical-doc-actions"><button className="icon-button" aria-label={`Voir ${document.name}`} disabled title="Bientôt disponible"><Icon name="search"/></button>{document.source==="official" && <button className="icon-button" aria-label={`Télécharger ${document.name}`} disabled title="Bientôt disponible"><Icon name="download"/></button>}</div>
   </article>;
@@ -57,8 +57,8 @@ export function PatientDocuments() {
   };
 
   return <main className="patient-content patient-subpage">
-    <PatientPageHeader title="Mes documents" description="Consultez vos documents médicaux et envoyez de nouveaux documents à votre établissement de santé." action={<Button icon="plus" onClick={()=>{setShowUpload(true);setUploadStatus("idle")}}>Ajouter un document</Button>}/>
-    {showUpload && <section className="card patient-upload-card"><div className="section-head"><div><h2>Ajouter un document</h2><p>Le fichier sera transmis au personnel médical pour vérification.</p></div><button className="icon-button" onClick={()=>setShowUpload(false)} aria-label="Fermer"><Icon name="x"/></button></div>
+    <PatientPageHeader title="Mes documents" description="Consultez vos documents médicaux et ajoutez de nouveaux documents à votre liste." action={<Button icon="plus" onClick={()=>{setShowUpload(true);setUploadStatus("idle")}}>Ajouter un document</Button>}/>
+    {showUpload && <section className="card patient-upload-card"><div className="section-head"><div><h2>Ajouter un document</h2><p>Le fichier est ajouté à votre liste sur cet appareil ; il n'est pas encore transmis à la clinique.</p></div><button className="icon-button" onClick={()=>setShowUpload(false)} aria-label="Fermer"><Icon name="x"/></button></div>
       <form onSubmit={uploadDocument} className="upload-form">
         <label className="file-drop"><input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={event=>setFileName(event.target.files?.[0]?.name ?? "")}/><span><Icon name="download" size={24}/></span><strong>{fileName || "Sélectionner un fichier"}</strong><small>PDF, JPG ou PNG • 10 Mo maximum</small></label>
         <label>Type de document<select value={documentType} onChange={event=>setDocumentType(event.target.value as MedicalDocumentCategory)}>{categories.slice(1).map(item=><option key={item}>{item}</option>)}</select></label>
@@ -71,8 +71,8 @@ export function PatientDocuments() {
       <div className="document-filters">{categories.map(item=><button key={item} className={category===item?"active":""} onClick={()=>setCategory(item)}>{item}</button>)}</div>
       {filteredDocuments.length ? filteredDocuments.map(document=><DocumentRow key={document.id} document={document}/>) : <PatientEmptyState icon={<Icon name="file" size={26}/>} title="Aucun document" description="Aucun document ne correspond à cette catégorie."/>}
     </section>
-    <section className="card patient-documents-card sent-documents"><div className="section-head"><div><h2>Documents envoyés</h2><p>Fichiers transmis par vos soins à l'établissement</p></div><Badge tone="neutral">{sentDocuments.length} documents</Badge></div>
-      {sentDocuments.length ? sentDocuments.map(document=><DocumentRow key={document.id} document={document}/>) : <PatientEmptyState icon={<Icon name="download" size={26}/>} title="Aucun document envoyé" description="Les fichiers que vous transmettez apparaîtront ici."/>}
+    <section className="card patient-documents-card sent-documents"><div className="section-head"><div><h2>Documents ajoutés</h2><p>Fichiers ajoutés par vos soins</p></div><Badge tone="neutral">{sentDocuments.length} documents</Badge></div>
+      {sentDocuments.length ? sentDocuments.map(document=><DocumentRow key={document.id} document={document}/>) : <PatientEmptyState icon={<Icon name="download" size={26}/>} title="Aucun document ajouté" description="Les fichiers que vous ajoutez apparaîtront ici."/>}
     </section>
   </main>;
 }
