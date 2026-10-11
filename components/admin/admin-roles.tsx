@@ -25,6 +25,9 @@ export function AdminRoles() {
   const [roles, setRoles] = useState<RoleDefinition[]>(adminRoles);
   const [selectedId, setSelectedId] = useState<UserRole>("hospital_staff");
   const [notice, setNotice] = useState("");
+  // Compteurs calculés depuis les rôles affichés.
+  const totalUsers = roles.reduce((sum, role) => sum + role.usersCount, 0);
+  const activePermissions = roles.reduce((sum, role) => sum + Object.values(role.permissions).filter(level => level !== "none").length, 0);
   const selectedRole = useMemo(() => roles.find(role=>role.id===selectedId) ?? roles[0], [roles,selectedId]);
 
   const updatePermission = (resource: string, permission: PermissionLevel) => {
@@ -36,9 +39,9 @@ export function AdminRoles() {
     <div className="page-heading"><div><span className="eyebrow">ACCÈS & SÉCURITÉ</span><h1>Rôles & permissions</h1><p>Configurez les niveaux d'accès et les autorisations appliqués aux utilisateurs.</p></div><Button icon="plus" onClick={()=>setNotice("La création de rôles personnalisés sera disponible prochainement.")}>Créer un rôle</Button></div>
     {notice && <div className="toast admin-toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")} aria-label="Fermer"><Icon name="x"/></button></div>}
     <div className="role-stats">
-      <article><span className="metric-icon blue"><Icon name="key"/></span><div><small>Rôles configurés</small><strong>3</strong><p>Rôles système protégés</p></div></article>
-      <article><span className="metric-icon green"><Icon name="users"/></span><div><small>Utilisateurs assignés</small><strong>1 248</strong><p>100% des comptes couverts</p></div></article>
-      <article><span className="metric-icon purple"><Icon name="shield"/></span><div><small>Permissions actives</small><strong>24</strong><p>Dernière révision : aujourd'hui</p></div></article>
+      <article><span className="metric-icon blue"><Icon name="key"/></span><div><small>Rôles configurés</small><strong>{roles.length}</strong><p>Rôles système protégés</p></div></article>
+      <article><span className="metric-icon green"><Icon name="users"/></span><div><small>Utilisateurs assignés</small><strong>{totalUsers.toLocaleString("fr-FR")}</strong><p>Comptes rattachés à un rôle</p></div></article>
+      <article><span className="metric-icon purple"><Icon name="shield"/></span><div><small>Permissions actives</small><strong>{activePermissions}</strong><p>Permissions accordées (hors « Aucun accès »)</p></div></article>
     </div>
     <div className="roles-layout">
       <aside className="card roles-list"><div className="section-head"><div><h2>Rôles de la plateforme</h2><p>Sélectionnez un rôle à configurer</p></div></div>

@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 :root {
   --blue: #0369a1;
@@ -23,7 +22,7 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-inter), system-ui, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 small { font-size: 12px; }
@@ -42,7 +41,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .modal-form textarea { resize: vertical; min-height: 66px; }
 .modal-form .form-error { margin-right: 0; }
 h1, h2, h3, p { margin: 0; }
-h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
+h1, h2, h3, .logo { font-family: var(--font-jakarta), system-ui, sans-serif; }
 .button { min-height: 38px; border: 0; border-radius: var(--radius); padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-weight: 650; transition: .2s; white-space: nowrap; }
 .button:hover { transform: translateY(-1px); filter: brightness(.98); }
 .button-primary { background: var(--blue-dark); color: white; box-shadow: 0 2px 5px rgba(3,105,161,.22); }
@@ -60,7 +59,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .badge-purple { background: var(--purple-soft); color: var(--purple); }
 .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; letter-spacing: -.5px; color: var(--ink); }
 .logo > span:last-child { display: flex; flex-direction: column; line-height: 1; }
-.logo small { margin-top: 4px; font-family: Inter; text-transform: uppercase; font-size: 12px; letter-spacing: 1.4px; color: var(--muted); }
+.logo small { margin-top: 4px; font-family: var(--font-inter), system-ui, sans-serif; text-transform: uppercase; font-size: 12px; letter-spacing: 1.4px; color: var(--muted); }
 .logo-mark { width: 36px; height: 36px; display: grid; place-items: center; color: white; border-radius: 10px; background: var(--blue-dark); }
 .logo-dark { color: white; }
 .logo-dark .logo-mark { background: rgba(255,255,255,.14); }
@@ -98,7 +97,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .breadcrumb { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); margin-bottom: 17px; }
 .breadcrumb span { color: var(--blue-dark); }
 .patient-hero { background: white; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); display: flex; align-items: center; padding: 20px 22px; gap: 16px; }
-.avatar-patient { width: 65px; height: 65px; background: linear-gradient(145deg,#d6eef8,#b9dfef); color: #086e9f; font: 700 19px "Plus Jakarta Sans"; }
+.avatar-patient { width: 65px; height: 65px; background: linear-gradient(145deg,#d6eef8,#b9dfef); color: #086e9f; font: 700 19px var(--font-jakarta), system-ui, sans-serif; }
 .patient-identity { flex: 1; }
 .identity-line { display: flex; align-items: center; gap: 10px; }
 .identity-line h1 { font-size: 21px; letter-spacing: -.5px; }
@@ -108,7 +107,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .hero-badges { display: flex; align-items: center; gap: 12px; }
 .blood { border-right: 1px solid var(--line); padding-right: 16px; text-align: center; display: flex; flex-direction: column; }
 .blood span { font-size: 12px; text-transform: uppercase; color: var(--muted); }
-.blood strong { font: 800 19px "Plus Jakarta Sans"; color: #c82e2e; margin-top: 3px; }
+.blood strong { font: 800 19px var(--font-jakarta), system-ui, sans-serif; color: #c82e2e; margin-top: 3px; }
 .tab-bar { display: flex; align-items: center; gap: 2px; border-bottom: 1px solid var(--line); margin-top: 13px; padding: 0 4px; }
 .tab-bar button { border: 0; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; padding: 14px 16px 12px; border-bottom: 2px solid transparent; display: flex; gap: 6px; }
 .tab-bar button.active { color: var(--blue-dark); border-bottom-color: var(--blue); }
@@ -148,13 +147,13 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .vital-icon.purple, .round-icon.purple, .metric-icon.purple { background: var(--purple-soft); color: var(--purple); }
 .vitals-list p { flex: 1; display: flex; flex-direction: column; }
 .vitals-list small { color: var(--muted); font-size: 12px; }
-.vitals-list strong { font: 700 14px "Plus Jakarta Sans"; margin-top: 3px; }
-.vitals-list em { font: 400 12px Inter; color: var(--muted); }
+.vitals-list strong { font: 700 14px var(--font-jakarta), system-ui, sans-serif; margin-top: 3px; }
+.vitals-list em { font: 400 12px var(--font-inter), system-ui, sans-serif; color: var(--muted); }
 .trend { color: #087e5a; font-size: 12px; font-weight: 700; }
 .text-link { border: 0; background: transparent; color: var(--blue-dark); display: flex; align-items: center; gap: 4px; font-weight: 650; font-size: 12px; }
 .vitals-list + .text-link { margin: 0 17px 15px; }
 .appointment-date { display: flex; align-items: center; gap: 9px; margin: 13px 17px 8px; }
-.appointment-date strong { font: 800 30px "Plus Jakarta Sans"; color: var(--blue-dark); }
+.appointment-date strong { font: 800 30px var(--font-jakarta), system-ui, sans-serif; color: var(--blue-dark); }
 .appointment-date span { font-size: 12px; font-weight: 700; display: flex; flex-direction: column; }
 .appointment-date small { color: var(--muted); font-weight: 500; margin-top: 2px; }
 .appointment-info { padding: 0 17px 15px; }
@@ -175,7 +174,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .stat-icon.purple { color: var(--purple); background: var(--purple-soft); }
 .stat-card > div { display: flex; flex-direction: column; min-width: 0; }
 .stat-card small { color: var(--muted); font-size: 12px; }
-.stat-card strong { font: 800 24px "Plus Jakarta Sans"; margin: 3px 0 2px; }
+.stat-card strong { font: 800 24px var(--font-jakarta), system-ui, sans-serif; margin: 3px 0 2px; }
 .stat-card p { color: var(--muted); font-size: 12px; }
 .stat-card p em { color: #087e5a; font-style: normal; font-weight: 700; }
 .stat-card p b { color: #c82e2e; font-weight: 600; }
@@ -216,7 +215,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .task-check { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; color: var(--muted); background: #eff3f6; }
 .task-check.urgent { color: #c82e2e; background: var(--red-soft); }
 .task-check.blue { color: var(--blue-dark); background: var(--blue-soft); }
-.occupancy-card .section-head > strong { color: var(--blue-dark); font: 800 20px "Plus Jakarta Sans"; }
+.occupancy-card .section-head > strong { color: var(--blue-dark); font: 800 20px var(--font-jakarta), system-ui, sans-serif; }
 .week-bars { height: 108px; padding: 15px 20px 4px; display: flex; align-items: flex-end; justify-content: space-between; gap: 9px; }
 .week-bars > div { height: 100%; flex: 1; display: flex; align-items: center; flex-direction: column; gap: 5px; }
 .week-bars span { width: 100%; flex: 1; display: flex; align-items: flex-end; justify-content: center; background: #f0f4f7; border-radius: 4px 4px 2px 2px; overflow: hidden; }
@@ -243,7 +242,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .patient-summary-strip > div:last-child { border-right: 0; }
 .summary-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; }
 .patient-summary-strip p { display: flex; flex-direction: column; }
-.patient-summary-strip strong { font: 800 17px "Plus Jakarta Sans"; }
+.patient-summary-strip strong { font: 800 17px var(--font-jakarta), system-ui, sans-serif; }
 .patient-summary-strip small { color: var(--muted); font-size: 12px; margin-top: 2px; }
 .directory-tools { min-height: 63px; padding: 12px 15px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
 .patient-search { width: min(340px, 34%); background: #fafbfc; }
@@ -269,7 +268,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .lab-stat-grid article.critical { border-color: #f5caca; }
 .lab-stat-grid p { display: flex; flex-direction: column; }
 .lab-stat-grid small { color: var(--muted); font-size: 12px; }
-.lab-stat-grid strong { font: 800 21px "Plus Jakarta Sans"; margin: 2px 0; }
+.lab-stat-grid strong { font: 800 21px var(--font-jakarta), system-ui, sans-serif; margin: 2px 0; }
 .lab-stat-grid em { color: var(--muted); font-style: normal; font-size: 12px; }
 .lab-stat-grid .badge { position: absolute; right: 10px; top: 10px; }
 .lab-layout { display: grid; grid-template-columns: minmax(0,1fr) 285px; gap: 16px; align-items: start; }
@@ -304,7 +303,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .agenda-summary article { min-height: 88px; display: flex; align-items: center; gap: 11px; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
 .agenda-summary article > div { display: flex; flex-direction: column; }
 .agenda-summary small { color: var(--muted); font-size: 12px; }
-.agenda-summary strong { font: 800 20px "Plus Jakarta Sans"; margin: 2px 0; }
+.agenda-summary strong { font: 800 20px var(--font-jakarta), system-ui, sans-serif; margin: 2px 0; }
 .agenda-summary p { color: var(--muted); font-size: 12px; }
 .agenda-layout { display: grid; grid-template-columns: minmax(650px,1fr) 285px; gap: 16px; align-items: start; }
 .agenda-calendar { overflow: hidden; }
@@ -323,7 +322,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .agenda-corner { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; font-size: 12px; }
 .agenda-day-head { grid-row: 1; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
 .agenda-day-head span { color: var(--muted); font-size: 12px; font-weight: 700; }
-.agenda-day-head strong { width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; font: 700 12px "Plus Jakarta Sans"; }
+.agenda-day-head strong { width: 25px; height: 25px; border-radius: 50%; display: grid; place-items: center; font: 700 12px var(--font-jakarta), system-ui, sans-serif; }
 .agenda-day-head.active strong { color: white; background: var(--blue-dark); }
 .agenda-hours { grid-column: 1; grid-row: 2; border-right: 1px solid var(--line); display: grid; grid-template-rows: repeat(10,58px); }
 .agenda-hours span { color: var(--muted); font-size: 12px; text-align: center; transform: translateY(-4px); }
@@ -353,7 +352,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .agenda-side { display: flex; flex-direction: column; gap: 14px; }
 .mini-calendar { padding: 13px; }
 .mini-calendar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
-.mini-calendar-head strong { font: 700 12px "Plus Jakarta Sans"; }
+.mini-calendar-head strong { font: 700 12px var(--font-jakarta), system-ui, sans-serif; }
 .mini-calendar-head button { width: 25px; height: 25px; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); }
 .mini-calendar-head button:first-child { transform: rotate(180deg); }
 .mini-calendar-head button.next { transform: none; }
@@ -465,7 +464,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .patient-avatar { width: 36px; height: 36px; border: 0; display: grid; place-items: center; border-radius: 50%; background: #d7eef7; color: #086e9f; font-weight: 800; font-size: 12px; }
 .patient-content { max-width: 1100px; margin: 0 auto; padding: 33px 25px; }
 .welcome { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
-.welcome p { color: var(--blue-dark); font: 600 12px "Plus Jakarta Sans"; }
+.welcome p { color: var(--blue-dark); font: 600 12px var(--font-jakarta), system-ui, sans-serif; }
 .welcome h1 { font-size: clamp(21px,3vw,28px); margin-top: 4px; letter-spacing: -.7px; }
 .sun-art { width: 58px; height: 58px; display: grid; place-items: center; border-radius: 50%; color: #c82e2e; background: #fff1d9; border: 7px solid #fff8ea; }
 .toast { background: var(--green-soft); color: #087e5a; border: 1px solid #bfead9; padding: 10px 14px; display: flex; gap: 8px; align-items: center; border-radius: var(--radius); margin-bottom: 13px; font-size: 12px; }
@@ -478,7 +477,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .appointment-top h2 { font-size: 16px; }
 .appointment-main { position: relative; z-index: 1; display: flex; align-items: center; margin: 20px 0 18px; }
 .date-block { display: flex; align-items: center; gap: 9px; min-width: 140px; border-right: 1px solid rgba(255,255,255,.2); }
-.date-block > strong { font: 800 38px "Plus Jakarta Sans"; }
+.date-block > strong { font: 800 38px var(--font-jakarta), system-ui, sans-serif; }
 .date-block > span { display: flex; flex-direction: column; font-size: 12px; font-weight: 700; }
 .date-block small { font-weight: 400; color: rgba(255,255,255,.92); margin-top: 3px; }
 .physician { display: flex; align-items: center; margin-left: 20px; gap: 10px; }
@@ -504,7 +503,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .result-item small { color: var(--muted); font-size: 12px; margin-top: 4px; }
 .personal-vitals select { border: 1px solid var(--line); background: white; color: var(--muted); border-radius: 6px; padding: 6px; font-size: 12px; }
 .current-value { display: flex; align-items: center; margin: 13px 0 -15px; }
-.current-value > strong { color: var(--ink); font: 800 26px "Plus Jakarta Sans"; }
+.current-value > strong { color: var(--ink); font: 800 26px var(--font-jakarta), system-ui, sans-serif; }
 .current-value > strong small { font-size: 15px; color: var(--muted); }
 .current-value > span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; margin-left: 5px; }
 .patient-chart { height: 120px; padding: 20px 5px 20px 30px; }
@@ -549,7 +548,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .patient-next-rdv-top h2 { font-size: 17px; }
 .patient-next-rdv-body { display: grid; grid-template-columns: 160px 1fr minmax(145px,.55fr); align-items: center; gap: 20px; margin: 22px 0 19px; position: relative; z-index: 1; }
 .rdv-large-date { display: flex; align-items: center; gap: 10px; border-right: 1px solid rgba(255,255,255,.22); }
-.rdv-large-date > strong { font: 800 40px "Plus Jakarta Sans"; }
+.rdv-large-date > strong { font: 800 40px var(--font-jakarta), system-ui, sans-serif; }
 .rdv-large-date > span { display: flex; flex-direction: column; font-weight: 700; font-size: 12px; }
 .rdv-large-date small { margin-top: 4px; color: rgba(255,255,255,.72); font-weight: 400; font-size: 12px; }
 .rdv-doctor { display: flex; align-items: center; gap: 11px; }
@@ -571,7 +570,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .patient-appointment-row { display: flex; align-items: center; gap: 15px; min-height: 83px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
 .patient-appointment-row:last-child { border-bottom: 0; }
 .appointment-mini-date { width: 66px; flex: 0 0 auto; display: flex; align-items: center; gap: 6px; padding-right: 12px; border-right: 1px solid var(--line); }
-.appointment-mini-date strong { color: var(--blue-dark); font: 800 24px "Plus Jakarta Sans"; }
+.appointment-mini-date strong { color: var(--blue-dark); font: 800 24px var(--font-jakarta), system-ui, sans-serif; }
 .appointment-mini-date span { display: flex; flex-direction: column; font-size: 12px; font-weight: 800; }
 .appointment-mini-date small { color: var(--muted); font-size: 12px; font-weight: 500; margin-top: 2px; }
 .appointment-row-main { flex: 1; display: grid; grid-template-columns: minmax(135px,.8fr) minmax(120px,.8fr) 1.3fr; align-items: center; gap: 13px; }
@@ -637,7 +636,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .latest-vitals article { min-height: 100px; display: flex; align-items: center; gap: 10px; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
 .latest-vitals article > div { flex: 1; display: flex; flex-direction: column; }
 .latest-vitals article > div > small { color: var(--muted); font-size: 12px; }
-.latest-vitals article strong { font: 800 21px "Plus Jakarta Sans"; margin-top: 3px; }
+.latest-vitals article strong { font: 800 21px var(--font-jakarta), system-ui, sans-serif; margin-top: 3px; }
 .latest-vitals article strong em { color: var(--muted); font-size: 14px; font-style: normal; }
 .latest-vitals article p { color: var(--muted); font-size: 12px; }
 .patient-vitals-chart { margin-bottom: 15px; }
@@ -675,7 +674,7 @@ h1, h2, h3, .logo { font-family: "Plus Jakarta Sans", sans-serif; }
 .metric-icon.green { background: var(--green-soft); color: #087e5a; }
 .metrics-row p { display: grid; grid-template-columns: auto auto; align-items: end; flex: 1; }
 .metrics-row small { grid-column: 1/-1; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
-.metrics-row strong { font: 800 19px "Plus Jakarta Sans"; }
+.metrics-row strong { font: 800 19px var(--font-jakarta), system-ui, sans-serif; }
 .metrics-row em { font-style: normal; color: #087e5a; font-size: 12px; justify-self: end; }
 .table-tools, .log-filters { display: flex; align-items: center; gap: 9px; padding: 14px; border-bottom: 1px solid var(--line); }
 .inner-search { height: 36px; width: 300px; display: flex; align-items: center; gap: 7px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); padding: 0 9px; }
@@ -722,7 +721,7 @@ code { font-family: "SFMono-Regular",Consolas,monospace; font-size: 12px; }
 .role-stats article, .audit-stats article { min-height: 82px; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; display: flex; align-items: center; gap: 11px; position: relative; }
 .role-stats article > div, .audit-stats article > p { flex: 1; display: flex; flex-direction: column; }
 .role-stats small, .audit-stats small { color: var(--muted); font-size: 12px; }
-.role-stats strong, .audit-stats strong { font: 800 19px "Plus Jakarta Sans"; margin: 2px 0; }
+.role-stats strong, .audit-stats strong { font: 800 19px var(--font-jakarta), system-ui, sans-serif; margin: 2px 0; }
 .role-stats p, .audit-stats em { color: var(--muted); font-size: 12px; font-style: normal; }
 .audit-stats article.attention { border-color: #f4cccc; }
 .audit-stats article > .badge { position: absolute; top: 10px; right: 10px; }
@@ -1002,11 +1001,24 @@ code { font-family: "SFMono-Regular",Consolas,monospace; font-size: 12px; }
   .stack-mobile table { min-width: 0; }
   .stack-mobile thead { display: none; }
   .stack-mobile table, .stack-mobile tbody, .stack-mobile tr, .stack-mobile td { display: block; width: 100%; }
-  .stack-mobile tr { padding: 12px 16px; border-bottom: 1px solid var(--line); }
-  .stack-mobile td { border: 0; padding: 4px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; }
+  .stack-mobile tr { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .stack-mobile td { border: 0; padding: 3px 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: right; }
   .stack-mobile td::before { content: attr(data-label); color: var(--muted); font-weight: 700; text-align: left; flex: 0 0 auto; }
   .stack-mobile td.stack-head { display: block; text-align: left; }
   .stack-mobile td.stack-head::before, .stack-mobile td.stack-action::before { content: none; }
   .stack-mobile td.stack-action { justify-content: flex-end; }
   .stack-mobile td.stack-action button { margin-top: 4px; }
 }
+
+/* Bandeau démo permanent (lot 3) : discret, en bas de l'écran, sous la navigation mobile quand elle existe */
+body { padding-bottom: 24px; }
+.demo-banner { position: fixed; left: 0; right: 0; bottom: 0; z-index: 19; height: 24px; display: flex; align-items: center; justify-content: center; background: var(--amber-soft); color: #a95d00; font-size: 12px; font-weight: 600; border-top: 1px solid #f2d6a1; pointer-events: none; }
+body:has(.bottom-nav) .demo-banner { bottom: 67px; }
+
+/* Recherche patient (lot 3) : résultats sous la barre de recherche */
+.global-search { position: relative; }
+.search-results { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 40; list-style: none; margin: 0; padding: 6px; background: white; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 12px 30px rgba(15,35,58,.12); }
+.search-results button { width: 100%; border: 0; background: transparent; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border-radius: 6px; text-align: left; color: var(--ink); }
+.search-results button:hover, .search-results button:focus-visible { background: var(--blue-soft); }
+.search-results small { color: var(--muted); font-size: 12px; }
+.search-empty { padding: 8px 10px; color: var(--muted); font-size: 12px; }

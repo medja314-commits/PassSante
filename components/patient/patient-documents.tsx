@@ -5,6 +5,7 @@ import { officialDocuments, patientDocuments as initialPatientDocuments } from "
 import type { MedicalDocument, MedicalDocumentCategory, MedicalDocumentStatus } from "@/types";
 import { Badge, Button, Icon, type IconName } from "@/components/ui";
 import { PatientEmptyState, PatientPageHeader } from "./patient-page-header";
+import { longDate, offsetFromInput } from "@/data/dates";
 
 const categories: Array<"Tous" | MedicalDocumentCategory> = ["Tous", "Ordonnance", "Résultat d'analyse", "Compte rendu", "Imagerie", "Certificat médical", "Autre"];
 
@@ -26,7 +27,7 @@ function DocumentRow({ document }: { document: MedicalDocument }) {
   return <article className="medical-document-row">
     <span className={`medical-doc-icon ${document.source}`}><Icon name={documentIcon(document.category)}/></span>
     <div className="medical-doc-name"><strong>{document.name}</strong><span>{document.category} • {document.size}</span>{document.rejectionReason && <p><Icon name="alert" size={12}/>{document.rejectionReason}</p>}</div>
-    <div className="medical-doc-meta"><small>DATE</small><span>{document.date}</span></div>
+    <div className="medical-doc-meta"><small>DATE</small><span>{longDate(document.date)}</span></div>
     <div className="medical-doc-meta"><small>{document.source==="official"?"AUTEUR":"AJOUTÉ"}</small><span>{document.author ?? "Ajouté sur cet appareil"}</span></div>
     <Badge tone={documentTone(document.status)}>{document.status}</Badge>
     <div className="medical-doc-actions"><button className="icon-button" aria-label={`Voir ${document.name}`} aria-disabled="true" title="Bientôt disponible"><Icon name="search"/></button>{document.source==="official" && <button className="icon-button" aria-label={`Télécharger ${document.name}`} aria-disabled="true" title="Bientôt disponible"><Icon name="download"/></button>}</div>
@@ -49,7 +50,7 @@ export function PatientDocuments() {
     if (!fileName || !documentDate) { setUploadStatus("error"); return; }
     setUploadStatus("uploading");
     window.setTimeout(() => {
-      const uploaded: MedicalDocument = { id: `upload-${Date.now()}`, name: fileName, category: documentType, date: documentDate, status: "En attente", size: "Nouveau fichier", source: "patient" };
+      const uploaded: MedicalDocument = { id: `upload-${Date.now()}`, name: fileName, category: documentType, date: { offset: offsetFromInput(documentDate) }, status: "En attente", size: "Nouveau fichier", source: "patient" };
       setSentDocuments(current=>[uploaded,...current]);
       setUploadStatus("success");
       setFileName(""); setDocumentDate(""); setDescription("");

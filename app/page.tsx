@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Sidickk):
 // Remplacer ce redirect par une logique d'authentification.
 // Rediriger vers /login si l'utilisateur n'est pas authentifié.

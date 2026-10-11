@@ -1,12 +1,10 @@
+import type { DateSpec } from "@/data/dates";
+
 export type AppointmentStatus = "Confirmé" | "En attente" | "Modifié" | "Terminé" | "Non honoré" | "Annulé par l'établissement";
 
 export interface PatientAppointment {
   id: string;
-  date: string;
-  day: string;
-  month: string;
-  year: string;
-  time: string;
+  start: DateSpec;
   doctor: string;
   specialty: string;
   reason: string;
@@ -23,7 +21,7 @@ export interface MedicalDocument {
   id: string;
   name: string;
   category: MedicalDocumentCategory;
-  date: string;
+  date: DateSpec;
   author?: string;
   status: MedicalDocumentStatus;
   size: string;
@@ -33,7 +31,7 @@ export interface MedicalDocument {
 
 export interface VitalMeasurement {
   id: string;
-  measuredAt: string;
+  measuredAt: DateSpec;
   systolic: number;
   diastolic: number;
   heartRate: number;
@@ -57,7 +55,7 @@ export interface RoleDefinition {
 
 export interface AuditLog {
   id: string;
-  timestamp: string;
+  timestamp: DateSpec;
   userEmail: string;
   userName: string;
   action: string;
@@ -75,14 +73,29 @@ export interface StaffPatient {
   name: string;
   age: string;
   gender: string;
-  lastVisit: string;
+  lastVisit: DateSpec;
   reason: string;
   status: PatientStatus;
   tone: "blue" | "green" | "red" | "purple";
   alert: string;
-  next: string;
+  next: DateSpec;
   birthDate?: string;
   phone?: string;
   bloodGroup?: string;
   allergy?: string;
+}
+
+export type LabStatus = "Critique" | "À valider" | "En cours" | "Validé";
+
+export interface LabExam {
+  id: string;
+  patient: string;
+  initials: string;
+  exam: string;
+  category: string;
+  requested: DateSpec;
+  received: DateSpec | string | null;
+  status: LabStatus;
+  tone: "red" | "amber" | "blue" | "green";
+  result: string;
 }

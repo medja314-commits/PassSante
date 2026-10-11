@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Nethania):
 // Charger les documents du patient depuis l'API.
 // Afficher les documents officiels et les uploads du patient séparément.

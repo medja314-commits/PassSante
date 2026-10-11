@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Merval):
 // Charger les rendez-vous du patient depuis l'API.
 // Afficher les rendez-vous à venir et l'historique séparément.

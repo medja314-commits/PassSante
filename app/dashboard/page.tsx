@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Merval):
 // Connecter les statistiques à l'API (patients, rendez-vous, examens).
 // Afficher les KPIs : nombre de patients, rendez-vous prévus, taux d'occupation, etc.

@@ -7,6 +7,7 @@ import type { VitalMeasurement } from "@/types";
 import { Badge, Button, Icon } from "@/components/ui";
 import { VitalChart } from "@/components/charts";
 import { PatientPageHeader } from "./patient-page-header";
+import { fullDateTime, offsetFromInput } from "@/data/dates";
 import { VitalInput } from "./vital-input";
 
 type VitalForm = { systolic: string; diastolic: string; heartRate: string; temperature: string; weight: string; measuredAt: string };
@@ -34,7 +35,7 @@ export function PatientVitals() {
     });
     if (!form.measuredAt) found.measuredAt = "Indiquez la date et l'heure de la mesure.";
     if (Object.keys(found).length) { setErrors(found); return; }
-    const measurement: VitalMeasurement = { id:`vital-${Date.now()}`, measuredAt:new Date(form.measuredAt).toLocaleString("fr-FR",{dateStyle:"medium",timeStyle:"short"}), systolic:Number(form.systolic), diastolic:Number(form.diastolic), heartRate:Number(form.heartRate), temperature:Number(form.temperature.replace(",",".")), weight:Number(form.weight.replace(",",".")), source:"patient" };
+    const measurement: VitalMeasurement = { id:`vital-${Date.now()}`, measuredAt:{ offset: offsetFromInput(form.measuredAt.slice(0,10)), time: form.measuredAt.slice(11,16) }, systolic:Number(form.systolic), diastolic:Number(form.diastolic), heartRate:Number(form.heartRate), temperature:Number(form.temperature.replace(",",".")), weight:Number(form.weight.replace(",",".")), source:"patient" };
     setMeasurements(current=>[measurement,...current]); setForm(emptyForm); setErrors({}); setShowForm(false); setNotice("Mesure ajoutée à l'historique de cette session uniquement.");
   };
   const hasErrors = Object.keys(errors).length > 0;
@@ -61,11 +62,11 @@ export function PatientVitals() {
       <article><span className="vital-icon amber"><Icon name="activity"/></span><div><small>Température</small><strong>{latest.temperature.toFixed(1).replace(".",",")}</strong><p>°C</p></div><Badge tone="green">Normal</Badge></article>
       <article><span className="vital-icon purple"><Icon name="grid"/></span><div><small>Poids</small><strong>{latest.weight.toFixed(1).replace(".",",")}</strong><p>kg</p></div><span className="trend">− 0,8 kg</span></article>
     </div>
-    <section className="card patient-vitals-chart"><div className="section-head"><div><h2>Évolution de vos constantes</h2><p>Dernière mesure : {latest.measuredAt}</p></div><select value={period} onChange={event=>setPeriod(event.target.value)} aria-label="Période"><option>7 jours</option><option>30 jours</option><option>3 mois</option></select></div>
+    <section className="card patient-vitals-chart"><div className="section-head"><div><h2>Évolution de vos constantes</h2><p>Dernière mesure : {fullDateTime(latest.measuredAt)}</p></div><select value={period} onChange={event=>setPeriod(event.target.value)} aria-label="Période"><option>7 jours</option><option>30 jours</option><option>3 mois</option></select></div>
       <div className="vital-chart-tabs"><button className="active">Pression artérielle</button><button>Fréquence cardiaque</button><button>Poids</button></div><VitalChart/>
     </section>
     <section className="card measurements-history"><div className="section-head"><div><h2>Historique des mesures</h2><p>Mesures saisies par vous et par vos professionnels de santé</p></div><Badge tone="neutral">{measurements.length} mesures</Badge></div>
-      <div className="data-table stack-mobile"><table><thead><tr><th>DATE</th><th>TENSION</th><th>FRÉQUENCE CARDIAQUE</th><th>TEMPÉRATURE</th><th>POIDS</th><th>SOURCE</th></tr></thead><tbody>{measurements.map(measurement=><tr key={measurement.id}><td className="stack-head"><strong>{measurement.measuredAt}</strong></td><td data-label="Tension">{measurement.systolic}/{measurement.diastolic} mmHg</td><td data-label="Fréquence cardiaque">{measurement.heartRate} bpm</td><td data-label="Température">{measurement.temperature.toFixed(1).replace(".",",")} °C</td><td data-label="Poids">{measurement.weight.toFixed(1).replace(".",",")} kg</td><td data-label="Source"><Badge tone={measurement.source==="professional"?"green":"blue"}>{measurement.source==="professional"?"Professionnel":"Déclarée par vous"}</Badge></td></tr>)}</tbody></table></div>
+      <div className="data-table stack-mobile"><table role="table"><thead role="rowgroup"><tr role="row"><th role="columnheader">DATE</th><th role="columnheader">TENSION</th><th role="columnheader">FRÉQUENCE CARDIAQUE</th><th role="columnheader">TEMPÉRATURE</th><th role="columnheader">POIDS</th><th role="columnheader">SOURCE</th></tr></thead><tbody role="rowgroup">{measurements.map(measurement=><tr role="row" key={measurement.id}><td role="cell" className="stack-head"><strong>{fullDateTime(measurement.measuredAt)}</strong></td><td role="cell" data-label="Tension">{measurement.systolic}/{measurement.diastolic} mmHg</td><td role="cell" data-label="Fréquence cardiaque">{measurement.heartRate} bpm</td><td role="cell" data-label="Température">{measurement.temperature.toFixed(1).replace(".",",")} °C</td><td role="cell" data-label="Poids">{measurement.weight.toFixed(1).replace(".",",")} kg</td><td role="cell" data-label="Source"><Badge tone={measurement.source==="professional"?"green":"blue"}>{measurement.source==="professional"?"Professionnel":"Déclarée par vous"}</Badge></td></tr>)}</tbody></table></div>
     </section>
     <div className="patient-data-note"><Icon name="alert" size={18}/><p><strong>Information importante</strong>Les constantes saisies par vos soins sont des données déclaratives. Elles peuvent être vérifiées et complétées par un professionnel de santé.</p></div>
   </main>;

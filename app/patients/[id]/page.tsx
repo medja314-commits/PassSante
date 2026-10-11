@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import PassSanteApp from "@/components/layout/pass-sante-app";
 import { getPatientById } from "@/data/mock-data";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Nethania):
 // Charger les données du patient depuis l'API.
 // Afficher le dossier médical complet (antécédents, constantes, documents).

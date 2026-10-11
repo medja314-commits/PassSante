@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Mira):
 // Implémenter l'interface de chat pour l'assistant IA du patient.
 // Connecter la logique RAG pour répondre aux questions du patient.

@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Mira):
 // Intégrer l'interface RAG (Retrieval-Augmented Generation).
 // Implémenter la récupération des documents pertinents.

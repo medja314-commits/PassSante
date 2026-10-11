@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Sidickk):
 // Connecter cette page à l'API de gestion des rôles.
 // Implémenter la création et modification des rôles personnalisés.

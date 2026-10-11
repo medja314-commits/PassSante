@@ -1,5 +1,8 @@
 import PassSanteApp from "@/components/layout/pass-sante-app";
 
+// Dates calculées à chaque requête (données de démonstration relatives à aujourd'hui).
+export const dynamic = "force-dynamic";
+
 // TODO(Merval):
 // Connecter le calendrier à l'API des rendez-vous du personnel.
 // Implémenter la synchronisation avec le calendrier externe si applicable.
