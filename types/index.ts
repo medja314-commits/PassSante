@@ -99,3 +99,14 @@ export interface LabExam {
   tone: "red" | "amber" | "blue" | "green";
   result: string;
 }
+
+// Consultation saisie pendant la session (données de démonstration, non persistées).
+export interface SessionConsultation {
+  id: string;
+  patientId: string;
+  at: DateSpec;
+  reason: string;
+  observations: string;
+  conclusion: string;
+  vitals: Partial<Record<"systolic" | "diastolic" | "heartRate" | "temperature" | "weight", number>>;
+}

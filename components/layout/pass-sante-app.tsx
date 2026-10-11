@@ -25,8 +25,9 @@ import { AdminAuditLogs, AdminRoles } from "@/components/admin";
 import { StaffAgenda } from "@/components/staff";
 import { adminRoles, adminUsers, appointmentHistory, getPatientById, staffPatients, upcomingAppointments, vitalMeasurements } from "@/data/mock-data";
 import { dateOf, dateParts, dayLabel, dayOf, fullDateTime, headingDate, isWeekend, longDate, nowTime, planningWeekdayName, shortDate, whenLabel } from "@/data/dates";
-import { useExams } from "@/components/layout/exams-context";
-import type { LabExam, StaffPatient } from "@/types";
+import { useSession } from "@/components/layout/session-context";
+import type { LabExam, SessionConsultation, StaffPatient } from "@/types";
+import { ConsultationFlow } from "@/components/consultation/consultation-flow";
 
 const soon = "Bientôt disponible";
 // Seul ce dossier dispose du détail des consultations, constantes et examens (démonstration).
@@ -106,8 +107,8 @@ function receivedLabel(exam: LabExam) {
   return `Reçu ${typeof exam.received === "string" ? exam.received : whenLabel(exam.received)}`;
 }
 
-function DashboardView({ openPatient }: { openPatient: (patientId: string) => void }) {
-  const { exams, toValidate, criticalCount } = useExams();
+function DashboardView({ openPatient, onStartConsultation }: { openPatient: (patientId: string) => void; onStartConsultation: () => void }) {
+  const { toValidate, criticalCount, recentPatients } = useSession();
   const now = nowTime();
   const appointments = [
     { time: "08:30", initials: "YK", name: "Yao Kouamé", type: "Consultation urgente", detail: "Douleur thoracique • Cabinet 2B", tone: "red" as const, patientId: "PS-2025-0148" },
@@ -125,7 +126,7 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
     { key: "messages", label: "3 messages patients", detail: "1 message non lu", icon: "message" as IconName, tone: "blue" },
   ];
   return <main className="workspace-page">
-    <PageTitle eyebrow={headingDate()} title={`Bonjour, ${DOCTOR}`} description="Voici l'essentiel de votre activité clinique aujourd'hui." action={<Button icon="plus" unavailable title={soon}>Démarrer une consultation</Button>}/>
+    <PageTitle eyebrow={headingDate()} title={`Bonjour, ${DOCTOR}`} description="Voici l'essentiel de votre activité clinique aujourd'hui." action={<Button icon="plus" onClick={onStartConsultation}>Démarrer une consultation</Button>}/>
     <div className="stat-grid">
       <article className="stat-card"><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>{weekend ? `Rendez-vous ${weekdayName}` : "Rendez-vous aujourd'hui"}</small><strong>{appointments.length}</strong><p><em>{upcomingCount}</em> consultations restantes</p></div><span className="stat-spark blue-bars"><i/><i/><i/><i/><i/></span></article>
       <article className="stat-card"><span className="stat-icon green"><Icon name="users"/></span><div><small>Patients suivis</small><strong>{staffPatients.length}</strong><p>Patients de la démonstration</p></div><span className="stat-spark green-bars"><i/><i/><i/><i/><i/></span></article>
@@ -150,11 +151,12 @@ function DashboardView({ openPatient }: { openPatient: (patientId: string) => vo
         <section className="card occupancy-card"><div className="section-head"><div><h2>Activité de la semaine</h2><p>Consultations réalisées</p></div><strong>42</strong></div><div className="week-bars">{[["LUN","75"],["MAR","92"],["MER","58"],["JEU","82"],["VEN","45"]].map(([day,value])=><div key={day}><span><i className={`bar-${value}`}/></span><small>{day}</small></div>)}</div><div className="occupancy-foot"><span><i/>Objectif hebdomadaire</span><b>84%</b></div></section>
       </aside>
     </div>
-    <section className="card recent-patients"><div className="section-head"><div><h2>Patients récemment consultés</h2><p>Accès rapide aux derniers dossiers</p></div><button className="text-link" aria-disabled="true" title={soon}>Tous les patients <Icon name="chevron" size={14}/></button></div><div className="recent-grid">{staffPatients.slice(0,4).map((patient,index)=><button key={patient.id} onClick={()=>openPatient(patient.id)}><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.reason}</small></span><Badge tone={patient.tone}>{patient.status}</Badge></button>)}</div></section>
+    <section className="card recent-patients"><div className="section-head"><div><h2>Patients récemment consultés</h2><p>Accès rapide aux derniers dossiers</p></div><button className="text-link" aria-disabled="true" title={soon}>Tous les patients <Icon name="chevron" size={14}/></button></div><div className="recent-grid">{recentPatients(staffPatients).slice(0,4).map((patient,index)=><button key={patient.id} onClick={()=>openPatient(patient.id)}><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.reason}</small></span><Badge tone={patient.tone}>{patient.status}</Badge></button>)}</div></section>
   </main>;
 }
 
 function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: string) => void; onNewPatient: () => void }) {
+  const { lastConsultationOf } = useSession();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Tous");
   const now = new Date();
@@ -184,7 +186,7 @@ function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: 
       </div>
       <div className="data-table patient-directory stack-mobile"><table role="table"><thead role="rowgroup"><tr role="row"><th role="columnheader">PATIENT</th><th role="columnheader">N° DE DOSSIER</th><th role="columnheader">DERNIÈRE CONSULTATION</th><th role="columnheader">MOTIF / SUIVI</th><th role="columnheader">PROCHAIN RDV</th><th role="columnheader">STATUT</th><th role="columnheader"></th></tr></thead><tbody role="rowgroup">{filteredPatients.map((patient,index)=><tr role="row" key={patient.id} onClick={()=>openPatient(patient.id)} className="clickable-row">
         <td role="cell" className="stack-head"><div className="directory-patient"><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.age} • {patient.gender}{patient.alert&&<em><Icon name="alert" size={10}/>{patient.alert}</em>}</small></span></div></td>
-        <td role="cell" data-label="N° de dossier"><code>{patient.id}</code></td><td role="cell" data-label="Dernière consultation">{whenLabel(patient.lastVisit)}</td><td role="cell" data-label="Motif / suivi"><strong>{patient.reason}</strong></td><td role="cell" data-label="Prochain RDV">{whenLabel(patient.next)}</td><td role="cell" data-label="Statut"><Badge tone={patient.tone}>{patient.status}</Badge></td><td role="cell" className="stack-action"><button className="icon-button" aria-label={`Actions pour ${patient.name}`} aria-disabled="true" title={soon} onClick={event=>event.stopPropagation()}><Icon name="more"/></button></td>
+        <td role="cell" data-label="N° de dossier"><code>{patient.id}</code></td><td role="cell" data-label="Dernière consultation">{whenLabel(lastConsultationOf(patient.id)?.at ?? patient.lastVisit)}</td><td role="cell" data-label="Motif / suivi"><strong>{patient.reason}</strong></td><td role="cell" data-label="Prochain RDV">{whenLabel(patient.next)}</td><td role="cell" data-label="Statut"><Badge tone={patient.tone}>{patient.status}</Badge></td><td role="cell" className="stack-action"><button className="icon-button" aria-label={`Actions pour ${patient.name}`} aria-disabled="true" title={soon} onClick={event=>event.stopPropagation()}><Icon name="more"/></button></td>
       </tr>)}</tbody></table></div>
       {filteredPatients.length === 0 && <div className="empty-state"><Icon name="search" size={26}/><strong>Aucun patient trouvé</strong><p>Modifiez votre recherche ou vos filtres.</p></div>}
       <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur {staffPatients.length}</span><div><button aria-disabled="true" title={soon}>Précédent</button><button className="active" aria-disabled="true" title={soon}>1</button><button aria-disabled="true" title={soon}>2</button><button aria-disabled="true" title={soon}>3</button><button aria-disabled="true" title={soon}>Suivant</button></div></div>
@@ -195,7 +197,7 @@ function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: 
 type LabExamRow = LabExam;
 
 function ExamsOverview() {
-  const { exams, validateExam, toValidate, criticalCount, validatedCount } = useExams();
+  const { exams, validateExam, toValidate, criticalCount, validatedCount } = useSession();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Tous");
   const [notice, setNotice] = useState("");
@@ -265,8 +267,34 @@ function ExamRequestModal({ patient, close }: { patient: StaffPatient; close: ()
   </section></div>;
 }
 
+function sessionArticle(item: SessionConsultation) {
+  const vitalParts = [
+    item.vitals.systolic && item.vitals.diastolic ? `TA ${item.vitals.systolic}/${item.vitals.diastolic} mmHg` : "",
+    item.vitals.heartRate ? `FC ${item.vitals.heartRate} bpm` : "",
+    item.vitals.temperature ? `T ${String(item.vitals.temperature).replace(".", ",")} °C` : "",
+    item.vitals.weight ? `Poids ${String(item.vitals.weight).replace(".", ",")} kg` : "",
+  ].filter(Boolean);
+  return <article key={item.id}>
+    <div className="timeline-marker"><Icon name="stethoscope" size={16}/></div>
+    <div className="timeline-date">{whenLabel(item.at).toUpperCase()} • SESSION</div>
+    <div className="consult-card">
+      <div className="consult-head"><div><Badge tone="blue">Consultation</Badge><h3>{item.reason}</h3></div></div>
+      {item.observations && <p>{item.observations}</p>}
+      {vitalParts.length > 0 && <p className="consult-hint">Constantes : {vitalParts.join(" • ")}</p>}
+      <div className="diagnosis"><span>CONCLUSION</span><strong>{item.conclusion}</strong></div>
+      <div className="doctor-sign"><span className="mini-avatar">KK</span><span><b>{DOCTOR}</b><small>Médecin généraliste</small></span><Badge tone="neutral">Session</Badge></div>
+    </div>
+  </article>;
+}
+
+function SessionTimeline({ items }: { items: SessionConsultation[] }) {
+  return <section className="card timeline-card"><div className="section-head"><div><h2>Historique médical</h2><p>Consultations enregistrées pendant cette session</p></div></div>{items.length ? <div className="timeline">{items.map(sessionArticle)}</div> : <div className="empty-state"><Icon name="file" size={26}/><strong>Aucune consultation enregistrée</strong><p>Les consultations démarrées depuis le tableau de bord apparaîtront ici pendant cette session.</p></div>}</section>;
+}
+
 function PatientRecord({ patient }: { patient: StaffPatient }) {
   const [tab, setTab] = useState("Consultations & CR");
+  const { consultations } = useSession();
+  const sessionItems = consultations.filter(item => item.patientId === patient.id);
   const [examOpen, setExamOpen] = useState(false);
   const tabs = ["Consultations & CR", "Constantes", "Prescriptions", "Examens & Labo"];
   const hasRecordDetails = patient.id === DEMO_RECORD_ID;
@@ -286,8 +314,8 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
       </div>
     </section>
     <div className="tab-bar">{tabs.map(t => <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>{t}{t === "Examens & Labo" && <i>{patientLabItems.length}</i>}</button>)}</div>
-    {!hasRecordDetails ? <section className="card empty-state"><Icon name="file" size={26}/><strong>Détails non disponibles</strong><p>Le détail des consultations, constantes et examens de ce dossier n'est pas disponible dans cette démonstration.</p></section> : <>
-      {tab === "Consultations & CR" && <Consultations/>}
+    {!hasRecordDetails && tab === "Consultations & CR" ? <SessionTimeline items={sessionItems}/> : !hasRecordDetails ? <section className="card empty-state"><Icon name="file" size={26}/><strong>Détails non disponibles</strong><p>Le détail des consultations, constantes et examens de ce dossier n'est pas disponible dans cette démonstration.</p></section> : <>
+      {tab === "Consultations & CR" && <Consultations sessionItems={sessionItems}/>}
       {tab === "Constantes" && <ConstantsView/>}
       {tab === "Prescriptions" && <Prescriptions/>}
       {tab === "Examens & Labo" && <LabView onRequestExam={()=>setExamOpen(true)}/>}
@@ -296,7 +324,7 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
   </main>;
 }
 
-function Consultations() {
+function Consultations({ sessionItems = [] }: { sessionItems?: SessionConsultation[] }) {
   const nextAppointment = upcomingAppointments[0];
   const nextParts = dateParts(nextAppointment.start);
   const latest = vitalMeasurements[0];
@@ -304,6 +332,7 @@ function Consultations() {
     <section className="card timeline-card">
       <div className="section-head"><div><h2>Historique médical</h2><p>Consultations et comptes-rendus</p></div><Button icon="plus" unavailable title={soon}>Nouveau compte-rendu</Button></div>
       <div className="timeline">
+        {sessionItems.map(sessionArticle)}
         <article>
           <div className="timeline-marker"><Icon name="stethoscope" size={16}/></div>
           <div className="timeline-date">{whenLabel({ offset: 0, time: "09:40" }).toUpperCase()}</div>
@@ -459,10 +488,11 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
   const [view, setView] = useState(initialView);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showNewPatient, setShowNewPatient] = useState(false);
-  const { toValidate } = useExams();
+  const { toValidate } = useSession();
+  const [showConsult, setShowConsult] = useState(false);
   const patient = patientId ? getPatientById(patientId) : undefined;
   const renderView = () => {
-    if (view === "dashboard") return <DashboardView openPatient={onOpenPatient}/>;
+    if (view === "dashboard") return <DashboardView openPatient={onOpenPatient} onStartConsultation={()=>setShowConsult(true)}/>;
     if (view === "patient") return <PatientsView openPatient={onOpenPatient} onNewPatient={()=>setShowNewPatient(true)}/>;
     if (view === "patient-record") return patient ? <PatientRecord key={patient.id} patient={patient}/> : <main className="content"><section className="card empty-state"><Icon name="search" size={26}/><strong>Dossier introuvable</strong><p>Aucun dossier ne correspond à cet identifiant.</p></section></main>;
     if (view === "agenda") return <StaffAgenda onOpenPatient={onOpenPatient}/>;
@@ -473,6 +503,7 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
     <div className={mobileOpen ? "sidebar-wrap open" : "sidebar-wrap"}><ProSidebar view={view} setView={(v)=>{setView(v);setMobileOpen(false);onView(v)}} onMode={onMode} toValidate={toValidate}/><button className="sidebar-overlay" onClick={()=>setMobileOpen(false)} aria-label="Fermer le menu"/></div>
     <div className="pro-main"><Topbar onMobileMenu={()=>setMobileOpen(true)} onOpenPatient={onOpenPatient}/>{renderView()}</div>
     {showNewPatient && <NewPatientModal close={()=>setShowNewPatient(false)}/>}
+    {showConsult && <ConsultationFlow onClose={()=>setShowConsult(false)} onOpenPatient={onOpenPatient}/>}
   </div>;
 }
 
