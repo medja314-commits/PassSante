@@ -30,6 +30,7 @@ import type { LabExam, SessionConsultation, StaffPatient } from "@/types";
 import { ConsultationFlow } from "@/components/consultation/consultation-flow";
 import { useRole } from "@/lib/role-context";
 import { can, type Resource, type Role } from "@/lib/rbac";
+import { logAction } from "@/lib/audit";
 
 const soon = "Bientôt disponible";
 // Seul ce dossier dispose du détail des consultations, constantes et examens (démonstration).
@@ -465,6 +466,7 @@ function NewPatientModal({ close }: { close: () => void }) {
   const [form, setForm] = useState({ name: "", birthDate: "", gender: "", phone: "", reason: "" });
   const [error, setError] = useState("");
   const [blocked, setBlocked] = useState(false);
+  const { role } = useRole();
   const update = (field: keyof typeof form, value: string) => setForm(current=>({...current,[field]:value}));
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -472,6 +474,7 @@ function NewPatientModal({ close }: { close: () => void }) {
     if (!form.birthDate || new Date(form.birthDate) > new Date()) { setError("Indiquez une date de naissance valide."); setBlocked(false); return; }
     if (!form.gender) { setError("Sélectionnez le sexe du patient."); setBlocked(false); return; }
     if (form.phone && !/^\+?[\d\s]{8,}$/.test(form.phone.trim())) { setError("Vérifiez le numéro de téléphone."); setBlocked(false); return; }
+    logAction(role, "create", "patients");
     setError(""); setBlocked(true);
   };
   return <div className="modal-backdrop" onClick={close}><section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="new-patient-title" onClick={e=>e.stopPropagation()}>
