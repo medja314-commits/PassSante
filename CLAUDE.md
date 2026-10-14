@@ -17,7 +17,7 @@ Ce fichier guide Claude Code et tous les membres de l'équipe. À lire avant tou
 ## 3. Arborescence et propriétaires
 | Dossier | Contenu | Propriétaire |
 |---|---|---|
-| `lib/rbac.ts`, `lib/audit.ts`, `lib/role-context.tsx` | Rôles, permissions, journal d'audit, rôle courant | M1 Sidickk |
+| `lib/rbac.ts`, `lib/audit.ts`, `lib/role-context.tsx` | Rôles, permissions, journal d'audit, rôle courant | M1 Sidick |
 | `components/admin/`, `app/admin/` | Utilisateurs, rôles, journaux d'audit | M1 Sidickk |
 | `app/patients/`, patients et dossier dans `components/layout/pass-sante-app.tsx` | Patients, dossier médical | M2 Nethania |
 | `components/ui/`, `components/patient/`, `app/espace-patient/`, RDV (`components/staff/`) | Design system, RDV, espace patient | M3 Merval |
@@ -33,14 +33,14 @@ Fonction centrale : `can(role, action, resource)` dans `lib/rbac.ts`.
 - Actions : `read`, `create`, `update`.
 - Ressources : `patients`, `dossier`, `rdv`, `assistant`, `logs`.
 
-| Rôle | patients | dossier | rdv | assistant | logs |
-|---|---|---|---|---|---|
-| medecin | read, create, update | read, create, update | read, create | read | — |
-| infirmier | read | read, update | read | read | — |
-| secretaire | read, create, update | — | read, create | — | — |
-| labo | read | read, update | — | — | — |
-| patient | — | read | read | read | — |
-| admin | read | — | — | — | read |
+| nnnRôle   |      patients        | dossier              | rdv          | assistant | logs |
+|---        |---                   |---                   |---           |---        |---   |
+| medecin   | read, create, update | read, create, update | read, create | read      |   —  |
+| infirmier | read                 | read, update         | read         | read      |   —  |
+|secretaire | read, create, update |           —          | read, create |     —     |   —  |
+| labo      | read                 | read, update         |      —       |     —     |   —  |
+| patient   |          —           | read                 | read         | read      |   —  |
+| admin     | read                 |           —          |      —       |     —     | read |
 
 La matrice est un brouillon à figer en équipe (BF-003). Toute modification de la matrice alimente l'interface, l'isolation et le RAG : elle passe en PR et est annoncée.
 
