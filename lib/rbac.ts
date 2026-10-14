@@ -21,3 +21,11 @@ export function canAccessPatient(role: Role, patientId: string): boolean {
   if (role === "patient") return patientId === DEMO_PATIENT_ID;
   return can(role, "read", "patients");
 }
+export const ROLES: { id: Role; label: string; description: string }[] = [
+  { id: "medecin", label: "Médecin", description: "Dossiers, consultations, assistant IA" },
+  { id: "infirmier", label: "Infirmier", description: "Constantes et suivi des patients" },
+  { id: "secretaire", label: "Secrétaire", description: "Accueil, patients et rendez-vous" },
+  { id: "labo", label: "Laboratoire", description: "Examens et résultats" },
+  { id: "patient", label: "Patient", description: "Son propre dossier uniquement" },
+  { id: "admin", label: "Administrateur", description: "Journaux d'audit et comptes" },
+];

@@ -29,7 +29,7 @@ import { useSession } from "@/components/layout/session-context";
 import type { LabExam, SessionConsultation, StaffPatient } from "@/types";
 import { ConsultationFlow } from "@/components/consultation/consultation-flow";
 import { useRole } from "@/lib/role-context";
-import { can, canAccessPatient, type Resource, type Role } from "@/lib/rbac";
+import { can, canAccessPatient, type Resource } from "@/lib/rbac";
 import { logAction } from "@/lib/audit";
 
 
@@ -47,7 +47,7 @@ const proNav: { id: string; label: string; icon: IconName; resource: Resource }[
 ];
 
 function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setView: (v: string) => void; onMode: (v: "patient" | "admin") => void; toValidate: number }) {
-  const { role, setRole } = useRole();
+  const { role } = useRole();
   const items = proNav.filter(item => can(role, "read", item.resource));
   return <aside className="pro-sidebar">
     <Logo dark />
@@ -62,9 +62,7 @@ function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setVi
     </nav>
     <div className="sidebar-footer">
       <span className="nav-caption">CHANGER D'ESPACE</span>
-      <select value={role} onChange={e => setRole(e.target.value as Role)} aria-label="Rôle de démonstration">
-         {["medecin","infirmier","secretaire","labo","patient","admin"].map(r => <option key={r} value={r}>{r}</option>)}
-      </select>
+      
       <button onClick={() => onMode("patient")}><Icon name="home"/><span>Espace patient</span></button>
       {can(role, "read", "logs") && <button onClick={() => onMode("admin")}><Icon name="shield"/><span>Administration</span></button>}
       <small>PassSanté v2.5 • Session sécurisée</small>
