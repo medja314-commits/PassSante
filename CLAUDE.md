@@ -18,7 +18,7 @@ Ce fichier guide Claude Code et tous les membres de l'équipe. À lire avant tou
 | Dossier | Contenu | Propriétaire |
 |---|---|---|
 | `lib/rbac.ts`, `lib/audit.ts`, `lib/role-context.tsx` | Rôles, permissions, journal d'audit, rôle courant | M1 Sidick |
-| `components/admin/`, `app/admin/` | Utilisateurs, rôles, journaux d'audit | M1 Sidickk |
+| `components/admin/`, `app/admin/` | Utilisateurs, rôles, journaux d'audit | M1 Sidick |
 | `app/patients/`, patients et dossier dans `components/layout/pass-sante-app.tsx` | Patients, dossier médical | M2 Nethania |
 | `components/ui/`, `components/patient/`, `app/espace-patient/`, RDV (`components/staff/`) | Design system, RDV, espace patient | M3 Merval |
 | `app/assistant/`, `app/api/assistant/`, `lib/rag/` | Assistant IA | M4 Mira |
