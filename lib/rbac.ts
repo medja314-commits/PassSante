@@ -14,3 +14,10 @@ const PERMS: Record<Role, Partial<Record<Resource, Action[]>>> = {
 export function can(role: Role, action: Action, resource: Resource): boolean {
   return PERMS[role]?.[resource]?.includes(action) ?? false;
 }
+// Patient de démonstration : Aminata Mensah (l'espace patient est câblé sur elle).
+export const DEMO_PATIENT_ID = "PS-2024-0812";
+
+export function canAccessPatient(role: Role, patientId: string): boolean {
+  if (role === "patient") return patientId === DEMO_PATIENT_ID;
+  return can(role, "read", "patients");
+}
