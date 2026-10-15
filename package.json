@@ -9,7 +9,7 @@
     "start": "next start",
     "preview": "next start",
     "format": "oxfmt",
-    "test": "tsx --test tests/autorisation.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts tests/auth.test.ts tests/audit.test.ts tests/inscription.test.ts tests/comptes.test.ts"
+    "test": "tsx --test tests/autorisation.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts tests/auth.test.ts tests/audit.test.ts tests/inscription.test.ts tests/comptes.test.ts tests/reinitialisation.test.ts"
   },
   "dependencies": {
     "firebase": "^13.0.0",
