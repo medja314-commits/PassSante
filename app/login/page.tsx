@@ -49,5 +49,6 @@ export default function LoginPage() {
       <button type="submit" disabled={occupe || !matricule || !motDePasse}>{occupe ? "Connexion..." : "Se connecter"}</button>
     </form>
     <p><Link href="/inscription">Créer un compte patient</Link></p>
+    <p><Link href="/mot-de-passe-oublie">Mot de passe oublié ?</Link></p>
   </main>;
 }
