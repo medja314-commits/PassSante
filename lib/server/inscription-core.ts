@@ -38,3 +38,33 @@ export function formatMatriculePatient(annee: number, numero: number): string {
   }
   return `PAT-${annee}-${String(numero).padStart(6, "0")}`;
 }
+
+// Choisit le prochain matricule libre après le dernier numéro attribué.
+// estPris : vérifie si un matricule est déjà attribué (lecture seule). Un matricule pris est sauté, jamais réécrit.
+export async function choisirMatriculeLibre(
+  annee: number,
+  dernier: number,
+  estPris: (matricule: string) => Promise<boolean>,
+): Promise<{ numero: number; matricule: string }> {
+  const LIMITE_ESSAIS = 1000;
+  for (let essai = 1; essai <= LIMITE_ESSAIS; essai++) {
+    const numero = dernier + essai;
+    const matricule = formatMatriculePatient(annee, numero);
+    if (!(await estPris(matricule))) return { numero, matricule };
+  }
+  throw new Error("Aucun matricule libre trouvé");
+}
+
+// Ne garde que les cinq champs de la saisie. Tout autre champ (rôle, statut, identifiant) est ignoré.
+export const CHAMPS_INSCRIPTION = ["nom", "prenom", "email", "motDePasse", "confirmation"] as const;
+
+export function extraireChampsInscription(corps: Record<string, unknown>): DonneesInscription | undefined {
+  if (!CHAMPS_INSCRIPTION.every(champ => typeof corps[champ] === "string")) return undefined;
+  return {
+    nom: corps.nom as string,
+    prenom: corps.prenom as string,
+    email: corps.email as string,
+    motDePasse: corps.motDePasse as string,
+    confirmation: corps.confirmation as string,
+  };
+}

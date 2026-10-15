@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { inscrirePatient, InscriptionRefusee } from "@/lib/server/inscription";
+import { extraireChampsInscription } from "@/lib/server/inscription-core";
 import { logAction } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
-// Inscription libre pour un patient uniquement. Le rôle n'est jamais demandé ni accepté dans le corps.
+// Inscription libre pour un patient uniquement. Seuls les cinq champs de la saisie sont lus :
+// un rôle, un statut ou un identifiant envoyé dans le corps est ignoré.
 export async function POST(request: Request) {
   let corps: Record<string, unknown>;
   try {
@@ -13,19 +15,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ erreur: "Requête invalide." }, { status: 400 });
   }
 
-  const champs = ["nom", "prenom", "email", "motDePasse", "confirmation"] as const;
-  if (!champs.every(champ => typeof corps[champ] === "string")) {
+  const donnees = extraireChampsInscription(corps);
+  if (!donnees) {
     return NextResponse.json({ erreur: "Tous les champs sont obligatoires." }, { status: 400 });
   }
 
   try {
-    const { matricule, uid } = await inscrirePatient({
-      nom: corps.nom as string,
-      prenom: corps.prenom as string,
-      email: corps.email as string,
-      motDePasse: corps.motDePasse as string,
-      confirmation: corps.confirmation as string,
-    });
+    const { matricule, uid } = await inscrirePatient(donnees);
     logAction("en_attente", "inscription", "compte", uid, true);
     return NextResponse.json({ matricule }, { status: 201 });
   } catch (erreur) {
