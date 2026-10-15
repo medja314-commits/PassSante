@@ -1,0 +1,61 @@
+"use client";
+import { useEffect, useState } from "react";
+
+type CompteEnAttente = { uid: string; nom: string; prenom: string; typeDemande: string; matricule: string; creeLe: string };
+
+// Validation des comptes en attente. Seule cette page (côté serveur) attribue le rôle.
+// Pour un patient, l'administrateur vérifie l'identité puis saisit l'identifiant du dossier existant.
+export default function ComptesEnAttentePage() {
+  const [comptes, setComptes] = useState<CompteEnAttente[]>([]);
+  const [chargement, setChargement] = useState(true);
+  const [message, setMessage] = useState("");
+  const [dossiers, setDossiers] = useState<Record<string, string>>({});
+
+  const charger = async () => {
+    setChargement(true);
+    try {
+      const reponse = await fetch("/api/admin/comptes", { cache: "no-store" });
+      const donnees = await reponse.json();
+      if (!reponse.ok) { setMessage(donnees.erreur ?? "Liste indisponible."); return; }
+      setComptes(donnees.comptes);
+    } catch {
+      setMessage("Liste indisponible pour le moment.");
+    } finally {
+      setChargement(false);
+    }
+  };
+
+  useEffect(() => { charger(); }, []);
+
+  const action = async (uid: string, chemin: "valider" | "refuser", corps?: object) => {
+    setMessage("");
+    const reponse = await fetch(`/api/admin/comptes/${uid}/${chemin}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corps ?? {}),
+    });
+    const donnees = await reponse.json();
+    if (!reponse.ok) { setMessage(donnees.erreur ?? "Action impossible."); return; }
+    setMessage(chemin === "valider" ? "Compte validé." : "Compte refusé.");
+    await charger();
+  };
+
+  return <main style={{ maxWidth: 760, margin: "40px auto", padding: 16 }}>
+    <h1>Comptes en attente de validation</h1>
+    <p>Vérifiez l&apos;identité avant de valider. Un patient doit être rattaché à son dossier existant.</p>
+    {message && <p role="status">{message}</p>}
+    {chargement && <p>Chargement…</p>}
+    {!chargement && comptes.length === 0 && <p>Aucun compte en attente.</p>}
+    {comptes.map(compte => <section key={compte.uid} style={{ border: "1px solid #d0d5dd", borderRadius: 8, padding: 12, marginBottom: 12 }}>
+      <p><strong>{compte.prenom} {compte.nom}</strong> · matricule {compte.matricule} · demande : {compte.typeDemande}</p>
+      <p style={{ fontSize: 12, color: "#5c6d7f" }}>Créé le {compte.creeLe}</p>
+      {compte.typeDemande === "patient" && <label>Dossier à rattacher (PS-AAAA-NNNN)
+        <input value={dossiers[compte.uid] ?? ""} onChange={e => setDossiers({ ...dossiers, [compte.uid]: e.target.value })} style={{ marginLeft: 8 }} />
+      </label>}
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <button type="button" onClick={() => action(compte.uid, "valider", { role: "patient", patientId: dossiers[compte.uid] ?? "" })} disabled={compte.typeDemande !== "patient"}>Valider comme patient</button>
+        <button type="button" onClick={() => action(compte.uid, "refuser")}>Refuser</button>
+      </div>
+    </section>)}
+  </main>;
+}
