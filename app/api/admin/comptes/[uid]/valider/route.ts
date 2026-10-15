@@ -12,14 +12,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ uid
   if (!garde.ok) return garde.reponse;
 
   const { uid } = await params;
-  let corps: { role?: unknown; patientId?: unknown };
+  let corps: { role?: unknown; patientId?: unknown; fonction?: unknown };
   try {
     corps = await request.json();
   } catch {
     return NextResponse.json({ erreur: "Requête invalide." }, { status: 400 });
   }
 
-  const attribution = validerAttribution(corps.role, corps.patientId);
+  const attribution = validerAttribution(corps.role, corps.patientId, corps.fonction);
   if (!attribution.ok) return NextResponse.json({ erreur: attribution.erreur }, { status: 400 });
 
   try {

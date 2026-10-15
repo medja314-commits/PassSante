@@ -68,3 +68,36 @@ export function extraireChampsInscription(corps: Record<string, unknown>): Donne
     confirmation: corps.confirmation as string,
   };
 }
+
+// Personnel : matricule d'hôpital imposé, au format 26PS + 5 chiffres (ex. 26PS00012).
+// Constante unique : changer le format ne touche qu'ici.
+export const FORMAT_MATRICULE_PERSONNEL = /^26PS\d{5}$/;
+
+// Fonction demandée par le personnel. Une demande uniquement : seule la validation de l'admin attribue la fonction.
+export const FONCTIONS_DEMANDABLES = ["medecin", "infirmier", "secretaire", "laboratoire"] as const;
+export type FonctionDemandable = (typeof FONCTIONS_DEMANDABLES)[number];
+
+export type DonneesInscriptionPersonnel = DonneesInscription & { matricule: string; fonction: string };
+
+export function validerInscriptionPersonnel(donnees: DonneesInscriptionPersonnel): string[] {
+  const erreurs = validerInscription(donnees);
+  if (!FORMAT_MATRICULE_PERSONNEL.test(donnees.matricule)) {
+    erreurs.push("Matricule d'hôpital invalide (format 26PS suivi de 5 chiffres).");
+  }
+  if (!(FONCTIONS_DEMANDABLES as readonly string[]).includes(donnees.fonction)) {
+    erreurs.push("Choisissez une fonction dans la liste.");
+  }
+  return erreurs;
+}
+
+// Matricule du personnel : doit être libre. Un matricule déjà attribué est refusé, jamais réécrit.
+export async function matriculePersonnelLibre(matricule: string, estPris: (m: string) => Promise<boolean>): Promise<boolean> {
+  return !(await estPris(matricule));
+}
+
+// Champs personnels lus depuis la requête (liste blanche, comme pour le patient).
+export function extraireChampsPersonnel(corps: Record<string, unknown>): DonneesInscriptionPersonnel | undefined {
+  const base = extraireChampsInscription(corps);
+  if (!base || typeof corps.matricule !== "string" || typeof corps.fonction !== "string") return undefined;
+  return { ...base, matricule: corps.matricule.trim().toUpperCase(), fonction: corps.fonction };
+}
