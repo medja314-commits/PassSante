@@ -9,7 +9,6 @@ export const dynamic = "force-dynamic";
 // Ajouter les filtres (par spécialité, statut, etc).
 // Gérer la pagination si le nombre de patients est élevé.
 // Afficher les états de chargement et les erreurs.
-// Implémenter la création d'un nouveau patient.
 export default function PatientsPage() {
   return <PassSanteApp area="pro" view="patient"/>;
 }
