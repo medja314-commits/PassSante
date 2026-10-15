@@ -29,8 +29,9 @@ import { useSession } from "@/components/layout/session-context";
 import type { LabExam, SessionConsultation, StaffPatient } from "@/types";
 import { ConsultationFlow } from "@/components/consultation/consultation-flow";
 import { useRole } from "@/lib/role-context";
-import { can, type Resource, type Role } from "@/lib/rbac";
+import { can, canAccessPatient, type Resource } from "@/lib/rbac";
 import { logAction } from "@/lib/audit";
+
 
 const soon = "Bientôt disponible";
 // Seul ce dossier dispose du détail des consultations, constantes et examens (démonstration).
@@ -46,7 +47,7 @@ const proNav: { id: string; label: string; icon: IconName; resource: Resource }[
 ];
 
 function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setView: (v: string) => void; onMode: (v: "patient" | "admin") => void; toValidate: number }) {
-  const { role, setRole } = useRole();
+  const { role } = useRole();
   const items = proNav.filter(item => can(role, "read", item.resource));
   return <aside className="pro-sidebar">
     <Logo dark />
@@ -61,9 +62,7 @@ function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setVi
     </nav>
     <div className="sidebar-footer">
       <span className="nav-caption">CHANGER D'ESPACE</span>
-      <select value={role} onChange={e => setRole(e.target.value as Role)} aria-label="Rôle de démonstration">
-         {["medecin","infirmier","secretaire","labo","patient","admin"].map(r => <option key={r} value={r}>{r}</option>)}
-      </select>
+      
       <button onClick={() => onMode("patient")}><Icon name="home"/><span>Espace patient</span></button>
       {can(role, "read", "logs") && <button onClick={() => onMode("admin")}><Icon name="shield"/><span>Administration</span></button>}
       <small>PassSanté v2.5 • Session sécurisée</small>
@@ -494,6 +493,7 @@ function NewPatientModal({ close }: { close: () => void }) {
   </section></div>;
 }
 
+const resourceOf = (v: string): Resource => v === "agenda" ? "rdv" : v === "examens" ? "dossier" : v === "assistant" ? "assistant" : "patients";
 function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patientId }: { onMode: (v: "patient" | "admin") => void; initialView?: string; onView: (view: string) => void; onOpenPatient: (patientId: string) => void; patientId?: string }) {
   const [view, setView] = useState(initialView);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -502,9 +502,14 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
   const [showConsult, setShowConsult] = useState(false);
   const patient = patientId ? getPatientById(patientId) : undefined;
   const { role } = useRole();
+  const isRecord = view === "patient-record" && !!patientId;
+  const denied = isRecord ? !canAccessPatient(role, patientId!) : !can(role, "read", resourceOf(view));
+      useEffect(() => {
+          if (denied && isRecord) logAction(role, "read", "dossier", patientId, false);
+      }, [denied, isRecord, role, patientId]);
   const renderView = () => {
-    const resourceOf = (v: string): Resource => v === "agenda" ? "rdv" : v === "examens" ? "dossier" : v === "assistant" ? "assistant" : "patients";
-    if (!can(role, "read", resourceOf(view))) return <main className="content"><section className="card empty-state"><Icon name="shield" size={26}/><strong>Accès refusé</strong><p>Votre rôle ne permet pas d'accéder à cette page.</p></section></main>; 
+     
+    if (denied) return <main className="content"><section className="card empty-state"><Icon name="shield" size={26}/><strong>Accès refusé</strong><p>Votre rôle ne permet pas d'accéder à ce dossier ou à cette page.</p></section></main>;
     if (view === "dashboard") return <DashboardView openPatient={onOpenPatient} onStartConsultation={()=>setShowConsult(true)}/>;
     if (view === "patient") return <PatientsView openPatient={onOpenPatient} onNewPatient={()=>setShowNewPatient(true)}/>;
     if (view === "patient-record") return patient ? <PatientRecord key={patient.id} patient={patient}/> : <main className="content"><section className="card empty-state"><Icon name="search" size={26}/><strong>Dossier introuvable</strong><p>Aucun dossier ne correspond à cet identifiant.</p></section></main>;
