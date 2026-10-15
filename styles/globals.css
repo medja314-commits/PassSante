@@ -1427,5 +1427,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 .modal-dialog.modal-wide { width: min(640px, calc(100vw - 40px)); }
 
+.role-switcher { position: fixed; right: 16px; bottom: 72px; z-index: 50; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fff; border: 1px solid #d0d5dd; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.12); font-size: 13px; }
+.role-switcher select { font: inherit; }
 
 

@@ -12,12 +12,13 @@
     "test": "tsx --test tests/access.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts"
   },
   "dependencies": {
+    "firebase": "^13.0.0",
     "next": "^16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.20.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "oxfmt": "^0.2.0",

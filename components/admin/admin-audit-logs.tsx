@@ -5,6 +5,8 @@ import { auditLogs } from "@/data/mock-data";
 import { isoStamp } from "@/data/dates";
 import type { AuditLog } from "@/types";
 import { Badge, Button, Icon } from "@/components/ui";
+import { getLogs } from "@/lib/audit";
+import { ROLES } from "@/lib/rbac";
 
 export function AdminAuditLogs() {
   const [query, setQuery] = useState("");
@@ -12,11 +14,23 @@ export function AdminAuditLogs() {
   const [status, setStatus] = useState("Tous");
   const [period, setPeriod] = useState("7 derniers jours");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const users = useMemo(()=>["Tous",...Array.from(new Set(auditLogs.map(log=>log.userName)))],[]);
-  const filteredLogs = auditLogs.filter(log => {
+  const liveLogs: AuditLog[] = getLogs().map((l, i) => ({
+      id: `live-${i}`,
+      timestamp: { offset: 0, time: new Date(l.date).toTimeString().slice(0, 5) },
+      userEmail: `${l.role}@demo.local`,
+      userName: ROLES.find(r => r.id === l.role)?.label ?? l.role,
+      action: l.action,
+      resource: l.targetId ? `${l.resource} ${l.targetId}` : l.resource,
+      ipAddress: "127.0.0.1",
+      status: l.allowed ? "Succès" : "Refusé",
+      risk: l.allowed ? "Normal" : "À vérifier",
+  }));
+  const allLogs = [...liveLogs, ...auditLogs];
+  const users = ["Tous", ...Array.from(new Set(allLogs.map(log => log.userName)))]; 
+  const filteredLogs = allLogs.filter((log => {
     const text = `${log.action} ${log.resource} ${log.userEmail}`.toLowerCase();
     return text.includes(query.toLowerCase()) && (user==="Tous" || log.userName===user) && (status==="Tous" || log.status===status);
-  });
+  }));
 
   // Compteurs calculés depuis le journal affiché (échantillon de démonstration).
   const total = auditLogs.length;

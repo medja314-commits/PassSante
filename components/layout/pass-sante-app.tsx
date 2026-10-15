@@ -31,21 +31,27 @@ import { ConsultationFlow } from "@/components/consultation/consultation-flow";
 import { ChatPanel } from "@/components/assistant/chat-panel";
 import { SourcesPanel } from "@/components/assistant/sources-panel";
 import type { SourceCitee } from "@/types/assistant";
+import { useRole } from "@/lib/role-context";
+import { can, canAccessPatient, type Resource } from "@/lib/rbac";
+import { logAction } from "@/lib/audit";
+
 
 const soon = "Bientôt disponible";
 // Seul ce dossier dispose du détail des consultations, constantes et examens (démonstration).
 const DEMO_RECORD_ID = "PS-2024-0812";
 const DOCTOR = "Dr Koffi Konan";
 
-const proNav: { id: string; label: string; icon: IconName }[] = [
-  { id: "dashboard", label: "Tableau de bord", icon: "grid" },
-  { id: "patient", label: "Patients", icon: "users" },
-  { id: "agenda", label: "Agenda & RDV", icon: "calendar" },
-  { id: "examens", label: "Examens / Labo", icon: "flask" },
-  { id: "assistant", label: "Assistant IA", icon: "sparkles" },
+const proNav: { id: string; label: string; icon: IconName; resource: Resource }[] = [
+  { id: "dashboard", label: "Tableau de bord", icon: "grid", resource: "patients" },
+  { id: "patient", label: "Patients", icon: "users", resource: "patients" },
+  { id: "agenda", label: "Agenda & RDV", icon: "calendar", resource: "rdv" },
+  { id: "examens", label: "Examens / Labo", icon: "flask", resource: "dossier" },
+  { id: "assistant", label: "Assistant IA", icon: "sparkles", resource: "assistant" },
 ];
 
 function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setView: (v: string) => void; onMode: (v: "patient" | "admin") => void; toValidate: number }) {
+  const { role } = useRole();
+  const items = proNav.filter(item => can(role, "read", item.resource));
   return <aside className="pro-sidebar">
     <Logo dark />
     <div className="doctor-card">
@@ -55,12 +61,13 @@ function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setVi
     </div>
     <nav className="side-nav" aria-label="Navigation principale">
       <span className="nav-caption">ESPACE DE TRAVAIL</span>
-      {proNav.map(item => <button key={item.id} onClick={() => setView(item.id)} className={view === item.id || (item.id === "patient" && view === "patient-record") ? "active" : ""}><Icon name={item.icon}/><span>{item.label}</span>{item.id === "examens" && <i>{toValidate}</i>}</button>)}
+      {items.map(item => <button key={item.id} onClick={() => setView(item.id)} className={view === item.id || (item.id === "patient" && view === "patient-record") ? "active" : ""}><Icon name={item.icon}/><span>{item.label}</span>{item.id === "examens" && <i>{toValidate}</i>}</button>)}
     </nav>
     <div className="sidebar-footer">
       <span className="nav-caption">CHANGER D'ESPACE</span>
+      
       <button onClick={() => onMode("patient")}><Icon name="home"/><span>Espace patient</span></button>
-      <button onClick={() => onMode("admin")}><Icon name="shield"/><span>Administration</span></button>
+      {can(role, "read", "logs") && <button onClick={() => onMode("admin")}><Icon name="shield"/><span>Administration</span></button>}
       <small>PassSanté v2.5 • Session sécurisée</small>
     </div>
   </aside>;
@@ -435,6 +442,7 @@ function NewPatientModal({ close }: { close: () => void }) {
   const [form, setForm] = useState({ name: "", birthDate: "", gender: "", phone: "", reason: "" });
   const [error, setError] = useState("");
   const [blocked, setBlocked] = useState(false);
+  const { role } = useRole();
   const update = (field: keyof typeof form, value: string) => setForm(current=>({...current,[field]:value}));
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -442,6 +450,7 @@ function NewPatientModal({ close }: { close: () => void }) {
     if (!form.birthDate || new Date(form.birthDate) > new Date()) { setError("Indiquez une date de naissance valide."); setBlocked(false); return; }
     if (!form.gender) { setError("Sélectionnez le sexe du patient."); setBlocked(false); return; }
     if (form.phone && !/^\+?[\d\s]{8,}$/.test(form.phone.trim())) { setError("Vérifiez le numéro de téléphone."); setBlocked(false); return; }
+    logAction(role, "create", "patients");
     setError(""); setBlocked(true);
   };
   return <div className="modal-backdrop" onClick={close}><section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="new-patient-title" onClick={e=>e.stopPropagation()}>
@@ -461,6 +470,7 @@ function NewPatientModal({ close }: { close: () => void }) {
   </section></div>;
 }
 
+const resourceOf = (v: string): Resource => v === "agenda" ? "rdv" : v === "examens" ? "dossier" : v === "assistant" ? "assistant" : "patients";
 function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patientId }: { onMode: (v: "patient" | "admin") => void; initialView?: string; onView: (view: string) => void; onOpenPatient: (patientId: string) => void; patientId?: string }) {
   const [view, setView] = useState(initialView);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -468,7 +478,15 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
   const { toValidate } = useSession();
   const [showConsult, setShowConsult] = useState(false);
   const patient = patientId ? getPatientById(patientId) : undefined;
+  const { role } = useRole();
+  const isRecord = view === "patient-record" && !!patientId;
+  const denied = isRecord ? !canAccessPatient(role, patientId!) : !can(role, "read", resourceOf(view));
+      useEffect(() => {
+          if (denied && isRecord) logAction(role, "read", "dossier", patientId, false);
+      }, [denied, isRecord, role, patientId]);
   const renderView = () => {
+     
+    if (denied) return <main className="content"><section className="card empty-state"><Icon name="shield" size={26}/><strong>Accès refusé</strong><p>Votre rôle ne permet pas d'accéder à ce dossier ou à cette page.</p></section></main>;
     if (view === "dashboard") return <DashboardView openPatient={onOpenPatient} onStartConsultation={()=>setShowConsult(true)}/>;
     if (view === "patient") return <PatientsView openPatient={onOpenPatient} onNewPatient={()=>setShowNewPatient(true)}/>;
     if (view === "patient-record") return patient ? <PatientRecord key={patient.id} patient={patient}/> : <main className="content"><section className="card empty-state"><Icon name="search" size={26}/><strong>Dossier introuvable</strong><p>Aucun dossier ne correspond à cet identifiant.</p></section></main>;
@@ -526,6 +544,8 @@ function PatientAssistant({ onBack }: { onBack: () => void }) {
 function AdminApp({ onMode, initialPage = "users", onPage }: { onMode: (v: "pro" | "patient") => void; initialPage?: string; onPage: (page: string) => void }) {
   const [page, setPage] = useState(initialPage);
   const [modal, setModal] = useState(false);
+  const { role } = useRole();
+  if (!can(role, "read", "logs")) return <main className="admin-content"><p>Accès refusé : réservé à l'administrateur.</p></main>;
   const changePage = (nextPage: string) => { setPage(nextPage); onPage(nextPage); };
   return <div className="admin-app"><aside className="admin-sidebar"><Logo dark/><nav><span className="nav-caption">ADMINISTRATION</span><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles & permissions</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Journaux d'audit</button></nav><div className="admin-profile"><div className="mini-avatar">SK</div><div><strong>Sophie Kouassi</strong><span>Super administratrice</span></div><button onClick={()=>onMode("pro")} aria-label="Passer à l'espace professionnel"><Icon name="chevron"/></button></div></aside><div className="admin-main"><header className="admin-topbar"><div className="global-search"><Icon name="search"/><input placeholder="Rechercher dans l'administration..."/></div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Notifications"><Icon name="bell"/></button></header><nav className="admin-mobile-nav"><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Audit</button></nav>{page==="logs"?<AdminAuditLogs/>:page==="roles"?<AdminRoles/>:<UsersPage openModal={()=>setModal(true)}/>}</div>{modal&&<RoleModal close={()=>setModal(false)}/>}</div>;
 }

@@ -1,0 +1,17 @@
+[33m0875ee0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/m1-rbac-audit[m[33m)[m feat(rbac): can() et matrice de permissions (BF-060)
+[33mc246381[m[33m ([m[1;31morigin/chore/regles-git[m[33m, [m[1;32mchore/regles-git[m[33m)[m chore(git): règles de branches et de Pull Request dans CLAUDE.md
+[33m25a22b5[m chore: ajouter CLAUDE.md (issu de l'ancien dossier PassSanteFigma)
+[33m123cfd3[m fix(admin): page Journaux d'audit manquante (route /admin/logs)
+[33m66061b5[m refactor(css): lot 4 – fusion des styles et suppression des !important
+[33m42b10fe[m[33m ([m[1;33mtag: [m[1;33mavant-lot-4[m[33m)[m feat(consultation): lot 3-bis – parcours de consultation
+[33me2ea997[m fix(ux): lot 3 – dates dynamiques, état partagé, recherche et microcopie
+[33m7c88a99[m fix(responsive): lot 2-bis – débordements mobiles
+[33m30463eb[m fix(a11y): lot 2 – contrastes, aria-labels, focus et validation des constantes
+[33mfae0687[m fix(ux): lot 1-bis – retrait des affirmations non vérifiées
+[33m78e087d[m fix(ux): lot 1-bis – retrait des affirmations non vérifiées
+[33m263524c[m fix(ux): lot 1 – suppression des faux succès, boutons morts et routing patient
+[33mba88b21[m chore: update next-env.d.ts generated types paths
+[33m1471fff[m feat: improve UI interactivity, readability and navigation
+[33m993e1b5[m fix: make build script windows compatible
+[33m7a48233[m feat: integrate PassSanteFigma frontend
+[33m3fc9b32[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Initial commit
