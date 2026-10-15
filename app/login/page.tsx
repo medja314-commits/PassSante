@@ -1,5 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const MESSAGE_ECHEC = "Matricule ou mot de passe incorrect.";
@@ -47,5 +48,6 @@ export default function LoginPage() {
       {erreur && <p role="alert" style={{ color: "#b42318" }}>{erreur}</p>}
       <button type="submit" disabled={occupe || !matricule || !motDePasse}>{occupe ? "Connexion..." : "Se connecter"}</button>
     </form>
+    <p><Link href="/inscription">Créer un compte patient</Link></p>
   </main>;
 }
