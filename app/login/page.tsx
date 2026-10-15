@@ -27,8 +27,10 @@ export default function LoginPage() {
       const role = snap.data()?.role as string | undefined;
       if (!role) { setError("Aucun rôle associé à ce compte."); setBusy(false); return; }
       router.push(HOME[role] ?? "/dashboard");
-    } catch {
-      setError("Connexion impossible : vérifiez l'email et le mot de passe.");
+    } catch (err) {
+      console.error(err);
+      const code = (err as { code?: string }).code ?? "inconnue";
+      setError(`Connexion impossible (${code}).`);
       setBusy(false);
     }
   };
