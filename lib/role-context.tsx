@@ -1,16 +1,16 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "./firebase";
 import { ROLES, type Role } from "./rbac";
 
+// Le rôle vient de la session serveur (cookie httpOnly, vérifié par Firebase Admin).
+// Le sélecteur de rôle n'existe qu'en mode démonstration (DEMO_MODE=true), et seulement hors connexion.
 const KEY = "passsante-demo-role";
 
 type Ctx = {
   role: Role;
   setRole: (r: Role) => void;
-  user: User | null;
+  connecte: boolean;
+  demo: boolean;
   authReady: boolean;
   logout: () => Promise<void>;
 };
@@ -18,48 +18,54 @@ type Ctx = {
 const RoleContext = createContext<Ctx>({
   role: "hospital_staff",
   setRole: () => {},
-  user: null,
+  connecte: false,
+  demo: false,
   authReady: false,
   logout: async () => {},
 });
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<Role>("hospital_staff");
-  const [user, setUser] = useState<User | null>(null);
+  const [connecte, setConnecte] = useState(false);
+  const [demo, setDemo] = useState(false);
   const [authReady, setAuthReady] = useState(false);
 
-  // Mode démo : rôle mémorisé pour la session.
+  // Session serveur : rôle et mode démo, sans email.
   useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem(KEY);
-      if (saved && ROLES.some(r => r.id === saved)) setRoleState(saved as Role);
-    } catch {}
+    let annule = false;
+    fetch("/api/auth/session", { cache: "no-store" })
+      .then(reponse => reponse.json())
+      .then((donnees: { connecte: boolean; role: string | null; demo: boolean }) => {
+        if (annule) return;
+        setConnecte(donnees.connecte);
+        setDemo(donnees.demo);
+        if (donnees.connecte && ROLES.some(r => r.id === donnees.role)) setRoleState(donnees.role as Role);
+        // Mode démo hors connexion : rôle mémorisé pour la session.
+        if (!donnees.connecte && donnees.demo) {
+          try {
+            const saved = sessionStorage.getItem(KEY);
+            if (saved && ROLES.some(r => r.id === saved)) setRoleState(saved as Role);
+          } catch {}
+        }
+      })
+      .catch(() => {})
+      .finally(() => { if (!annule) setAuthReady(true); });
+    return () => { annule = true; };
   }, []);
 
-  // Mode Firebase : si connecté, le rôle vient de Firestore.
-  useEffect(() => {
-    return onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          const snap = await getDoc(doc(db, "users", (u.email ?? "").toLowerCase()));
-          const r = snap.data()?.role;
-          if (ROLES.some(x => x.id === r)) setRoleState(r as Role);
-        } catch {}
-      }
-      setAuthReady(true);
-    });
-  }, []);
-
+  // Changement de rôle : uniquement en démo, et jamais pendant une session réelle.
   const setRole = (r: Role) => {
-    if (user) return; // connecté : le rôle vient du serveur
+    if (connecte || !demo) return;
     setRoleState(r);
     try { sessionStorage.setItem(KEY, r); } catch {}
   };
 
-  const logout = async () => { await signOut(auth); };
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  };
 
-  return <RoleContext.Provider value={{ role, setRole, user, authReady, logout }}>{children}</RoleContext.Provider>;
+  return <RoleContext.Provider value={{ role, setRole, connecte, demo, authReady, logout }}>{children}</RoleContext.Provider>;
 }
 
 export const useRole = () => useContext(RoleContext);

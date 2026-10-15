@@ -21,6 +21,6 @@
     "strict": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["next-env.d.ts", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", "app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "types/**/*.ts", "data/**/*.ts", "lib/**/*.ts"],
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", "app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "types/**/*.ts", "data/**/*.ts", "lib/**/*.ts", "proxy.ts"],
   "exclude": ["node_modules"]
 }
