@@ -31,7 +31,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ erreur: resultat.message }, { status: 401 });
     }
 
-    logAction(resultat.role, "connexion", "session", resultat.uid, true);
+    // Compte en attente : pas de rôle, donc pas de journal (logAction exige un rôle). À traiter avec le responsable du journal.
+    if (resultat.role) logAction(resultat.role, "connexion", "session", resultat.uid, true);
     const reponse = NextResponse.json({ redirect: resultat.redirect });
     reponse.cookies.set(COOKIE_SESSION, resultat.cookie, {
       httpOnly: true,

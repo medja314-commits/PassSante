@@ -57,7 +57,23 @@ export type ProfilCompte = {
   email: string;
   role?: unknown;
   patientId?: unknown;
+  statut?: unknown;
 };
+
+// Statut du compte, posé par le serveur dans les custom claims.
+// Un compte sans statut « valide » est en attente : il peut se connecter, mais ne voit que la page d'attente.
+export type Statut = "valide" | "en_attente";
+export const PAGE_ATTENTE = "/attente";
+
+export function statutDuProfil(statut: unknown): Statut {
+  return statut === "valide" ? "valide" : "en_attente";
+}
+
+// Accès selon la session : un compte en attente ne voit que la page d'attente.
+export function accesPourSession(session: { statut: Statut; role?: Role }, chemin: string): boolean {
+  if (session.statut !== "valide") return chemin === PAGE_ATTENTE;
+  return accesAutorise(session.role, chemin);
+}
 
 // Accès aux services externes, injectés pour les tests.
 export type DepsConnexion = {
@@ -72,7 +88,7 @@ export type DepsConnexion = {
 };
 
 export type ResultatConnexion =
-  | { ok: true; cookie: string; redirect: string; role: Role; uid: string }
+  | { ok: true; cookie: string; redirect: string; uid: string; statut: Statut; role?: Role }
   | { ok: false; message: string; uid?: string; role?: Role };
 
 // Ne renvoie jamais l'email : le résultat est destiné au navigateur.
@@ -82,16 +98,23 @@ export async function connecter(deps: DepsConnexion, matricule: string, motDePas
   if (!uid) return { ok: false, message: MESSAGE_ECHEC };
 
   const profil = await deps.profilDeUid(uid);
-  if (!profil || !profilExploitable(profil.role, profil.patientId)) {
+  if (!profil) return { ok: false, message: MESSAGE_ECHEC, uid };
+
+  const statut = statutDuProfil(profil.statut);
+  // Un compte validé doit avoir un rôle exploitable. Un compte en attente n'en a pas encore.
+  if (statut === "valide" && !profilExploitable(profil.role, profil.patientId)) {
     return { ok: false, message: MESSAGE_ECHEC, uid };
   }
-  const role = profil.role;
+  const role = statut === "valide" && roleConnu(profil.role) ? profil.role : undefined;
 
   const jeton = await deps.verifierMotDePasse(profil.email, motDePasse);
   if (!jeton) return { ok: false, message: MESSAGE_ECHEC, uid, role };
 
   const cookie = await deps.creerCookie(jeton);
-  return { ok: true, cookie, redirect: ACCUEIL_PAR_ROLE[role], role, uid };
+  if (statut === "en_attente") {
+    return { ok: true, cookie, redirect: PAGE_ATTENTE, uid, statut };
+  }
+  return { ok: true, cookie, redirect: ACCUEIL_PAR_ROLE[role as Role], uid, statut, role: role as Role };
 }
 
 // Sécurité des routes : vérifie le rôle d'une session déjà validée par Firebase.

@@ -12,6 +12,7 @@ export async function GET() {
   const session = await verifierSession(jar.get(COOKIE_SESSION)?.value);
   return NextResponse.json({
     connecte: Boolean(session),
+    statut: session?.statut ?? null,
     role: session?.role ?? null,
     demo: process.env.DEMO_MODE === "true",
   });

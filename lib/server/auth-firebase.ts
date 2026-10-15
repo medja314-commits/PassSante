@@ -1,5 +1,5 @@
 import { auth, db } from "./firebase-admin";
-import { DUREE_SESSION_MS, profilExploitable, type DepsConnexion, type ProfilCompte } from "./auth-core";
+import { DUREE_SESSION_MS, profilExploitable, statutDuProfil, type DepsConnexion, type ProfilCompte, type Statut } from "./auth-core";
 import type { Role } from "../rbac";
 
 // Implémentation Firebase des accès décrits dans auth-core.ts. SERVEUR UNIQUEMENT.
@@ -35,7 +35,7 @@ export const depsConnexion: DepsConnexion = {
     const compte = await auth().getUser(uid);
     if (!compte.email) return undefined;
     const claims = compte.customClaims ?? {};
-    return { uid, email: compte.email, role: claims.role, patientId: claims.patientId };
+    return { uid, email: compte.email, role: claims.role, patientId: claims.patientId, statut: claims.statut };
   },
 
   verifierMotDePasse,
@@ -45,19 +45,22 @@ export const depsConnexion: DepsConnexion = {
   },
 };
 
-export type SessionVerifiee = { uid: string; role: Role; patientId?: string };
+export type SessionVerifiee = { uid: string; statut: Statut; role?: Role; patientId?: string };
 
 // Vérifie le cookie de session auprès de Firebase (révocation comprise).
-// Renvoie undefined si le cookie est absent, expiré, révoqué ou sans rôle exploitable.
+// Renvoie undefined si le cookie est absent, expiré, révoqué, ou si un compte validé n'a pas de rôle exploitable.
+// Un compte en attente est accepté, sans rôle : il ne peut accéder qu'à la page d'attente.
 export async function verifierSession(cookie: string | undefined): Promise<SessionVerifiee | undefined> {
   if (!cookie) return undefined;
   try {
     const jeton = await auth().verifySessionCookie(cookie, true);
-    const claims = jeton as typeof jeton & { role?: unknown; patientId?: unknown };
-    if (!profilExploitable(claims.role, claims.patientId)) return undefined;
+    const claims = jeton as typeof jeton & { role?: unknown; patientId?: unknown; statut?: unknown };
+    const statut = statutDuProfil(claims.statut);
+    if (statut === "valide" && !profilExploitable(claims.role, claims.patientId)) return undefined;
     return {
       uid: jeton.uid,
-      role: claims.role,
+      statut,
+      role: statut === "valide" ? (claims.role as Role) : undefined,
       patientId: typeof claims.patientId === "string" ? claims.patientId : undefined,
     };
   } catch {

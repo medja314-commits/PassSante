@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export async function POST() {
   const jar = await cookies();
   const session = await verifierSession(jar.get(COOKIE_SESSION)?.value);
-  if (session) logAction(session.role, "deconnexion", "session", session.uid, true);
+  if (session?.role) logAction(session.role, "deconnexion", "session", session.uid, true);
 
   const reponse = NextResponse.json({ ok: true });
   reponse.cookies.set(COOKIE_SESSION, "", {

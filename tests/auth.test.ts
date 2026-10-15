@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   ACCUEIL_PAR_ROLE,
+  PAGE_ATTENTE,
+  accesPourSession,
   MESSAGE_ECHEC,
   accesAutorise,
   connecter,
@@ -15,9 +17,9 @@ import { ROLES } from "../lib/rbac.ts";
 
 // Comptes factices. Aucun appel à Firebase : tout passe par ces accès simulés.
 const COMPTES: Record<string, ProfilCompte & { motDePasse: string }> = {
-  "MED-001": { uid: "uid-medecin", email: "medecin@exemple.test", role: "hospital_staff", motDePasse: "secret-medecin", patientId: undefined },
-  "PAT-2024-000001": { uid: "uid-patient", email: "patient@exemple.test", role: "patient", patientId: "PS-2024-0812", motDePasse: "secret-patient" },
-  "SANS-ROLE": { uid: "uid-sans-role", email: "sans@exemple.test", motDePasse: "secret" },
+  "MED-001": { uid: "uid-medecin", email: "medecin@exemple.test", role: "hospital_staff", statut: "valide", motDePasse: "secret-medecin", patientId: undefined },
+  "PAT-2024-000001": { uid: "uid-patient", email: "patient@exemple.test", role: "patient", patientId: "PS-2024-0812", statut: "valide", motDePasse: "secret-patient" },
+  "SANS-ROLE": { uid: "uid-sans-role", email: "sans@exemple.test", statut: "valide", motDePasse: "secret" },
 };
 
 function faussesDeps(): DepsConnexion & { appelsEmail: string[] } {
@@ -122,4 +124,49 @@ test("validation du matricule", () => {
   assert.equal(matriculeValide(""), false);
   assert.equal(matriculeValide("a b"), false);
   assert.equal(matriculeValide("x".repeat(40)), false);
+});
+
+// Statut « en attente » : le compte peut se connecter, mais ne voit que la page d'attente.
+const ATTENTE: DepsConnexion = {
+  async trouverUid(matricule) {
+    return matricule === "PER-ATTENTE" ? "uid-attente" : undefined;
+  },
+  async profilDeUid(uid) {
+    return uid === "uid-attente" ? { uid, email: "attente@exemple.test", statut: "en_attente" } : undefined;
+  },
+  async verifierMotDePasse(_email, motDePasse) {
+    return motDePasse === "bon" ? "jeton-attente" : undefined;
+  },
+  async creerCookie(jeton) {
+    return `cookie-de-${jeton}`;
+  },
+};
+
+test("compte en attente : connexion permise, redirection vers la page d'attente, sans rôle", async () => {
+  const resultat = await connecter(ATTENTE, "PER-ATTENTE", "bon");
+  assert.equal(resultat.ok, true);
+  if (!resultat.ok) return;
+  assert.equal(resultat.redirect, PAGE_ATTENTE);
+  assert.equal(resultat.statut, "en_attente");
+  assert.equal(resultat.role, undefined);
+});
+
+test("compte en attente : mauvais mot de passe refusé avec le message générique", async () => {
+  const resultat = await connecter(ATTENTE, "PER-ATTENTE", "mauvais");
+  assert.equal(resultat.ok, false);
+  assert.equal(resultat.message, MESSAGE_ECHEC);
+});
+
+test("compte en attente : seule la page d'attente est accessible", () => {
+  const session = { statut: "en_attente" as const };
+  assert.equal(accesPourSession(session, PAGE_ATTENTE), true);
+  assert.equal(accesPourSession(session, "/dashboard"), false);
+  assert.equal(accesPourSession(session, "/espace-patient"), false);
+  assert.equal(accesPourSession(session, "/api/assistant"), false);
+});
+
+test("compte validé : accès selon le rôle, pas à la page d'attente uniquement", () => {
+  const staff = { statut: "valide" as const, role: "hospital_staff" as const };
+  assert.equal(accesPourSession(staff, "/dashboard"), true);
+  assert.equal(accesPourSession(staff, "/admin/users"), false);
 });
