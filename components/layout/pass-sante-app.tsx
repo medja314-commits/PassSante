@@ -28,6 +28,9 @@ import { dateOf, dateParts, dayLabel, dayOf, formatCount, fullDateTime, headingD
 import { useSession } from "@/components/layout/session-context";
 import type { LabExam, SessionConsultation, StaffPatient } from "@/types";
 import { ConsultationFlow } from "@/components/consultation/consultation-flow";
+import { ChatPanel } from "@/components/assistant/chat-panel";
+import { SourcesPanel } from "@/components/assistant/sources-panel";
+import type { SourceCitee } from "@/types/assistant";
 import { useRole } from "@/lib/role-context";
 import { can, canAccessPatient, type Resource } from "@/lib/rbac";
 import { logAction } from "@/lib/audit";
@@ -423,38 +426,12 @@ function LabView({ onRequestExam }: { onRequestExam: () => void }) {
 }
 
 function AssistantView() {
-  const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<string[]>([]);
-  const sendMessage = (event: FormEvent) => {
-    event.preventDefault();
-    const content = draft.trim();
-    if (!content) return;
-    setMessages(current => [...current, content]);
-    setDraft("");
-  };
+  const [sources, setSources] = useState<SourceCitee[]>([]);
   return <main className="assistant-page">
-    <div className="assistant-title"><div><span className="ai-symbol"><Icon name="sparkles"/></span><div><h1>Assistant clinique IA</h1><p>Dossier d'Aminata Mensah • Données fictives</p></div></div><Badge tone="green"><span className="pulse"/>Démonstration</Badge></div>
-    <div className="warning-banner"><Icon name="alert"/><p><strong>Mode démonstration :</strong> réponses préenregistrées, ne pas utiliser pour une décision clinique.</p></div>
+    <div className="assistant-title"><div><span className="ai-symbol"><Icon name="sparkles"/></span><div><h1>Assistant clinique IA</h1><p>Données fictives • réponses fondées sur les passages autorisés</p></div></div></div>
     <div className="split-chat">
-      <section className="chat-panel">
-        <div className="chat-scroll">
-          <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Assistant PassSanté</b><p>Bonjour {DOCTOR}. Cette démonstration affiche des réponses préenregistrées sur le dossier d'Aminata Mensah.</p></div></div>
-          <div className="user-message"><p>Peux-tu me résumer l'évolution de sa tension et les traitements actuels ?</p></div>
-          <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Réponse préenregistrée</b><div className="ai-answer"><p>La tension d'Aminata s'est <strong>progressivement stabilisée</strong> au cours des 8 dernières semaines, passant d'une moyenne de 142/91 mmHg à <strong>124/78 mmHg</strong> lors de la dernière mesure.<sup>1</sup></p><p>Son traitement actuel comprend :</p><ul><li><strong>Amlodipine 5 mg</strong> — 1 comprimé par jour<sup>2</sup></li><li><strong>Vitamine D3 1000 UI</strong> — 1 dose par jour<sup>3</sup></li></ul><div className="ai-note"><Icon name="check"/>Interactions médicamenteuses : non évaluées dans cette démonstration.</div></div></div></div>
-          {messages.map((message,index) => <div className="chat-exchange" key={`${message}-${index}`}>
-            <div className="user-message"><p>{message}</p></div>
-            <div className="ai-message"><span className="ai-avatar"><Icon name="sparkles"/></span><div><b>Assistant PassSanté</b><div className="ai-answer"><p>Réponse préenregistrée : elle n'a pas été générée à partir de votre question.</p><p>Exemple affiché à titre illustratif : la tension de référence est <strong>124/78 mmHg</strong> et le traitement actif est inchangé.<sup>1</sup></p><div className="ai-note"><Icon name="file" size={14}/>Démonstration : aucune donnée réelle n'est consultée.</div></div></div></div>
-          </div>)}
-        </div>
-        <div className="suggestions"><button type="button" onClick={()=>setDraft("Prépare une synthèse pour la prochaine consultation.")}>Préparer la prochaine consultation</button><button type="button" onClick={()=>setDraft("Signale-moi les dernières valeurs anormales du dossier.")}>Signaler les valeurs anormales</button></div>
-        <form className="chat-input" onSubmit={sendMessage}><textarea value={draft} onChange={event=>setDraft(event.target.value)} aria-label="Message" placeholder="Interroger le dossier médical..."/><button type="submit" aria-label="Envoyer" disabled={!draft.trim()}><Icon name="send"/></button><small><Icon name="lock" size={12}/>Mode démonstration : réponses préenregistrées</small></form>
-      </section>
-      <aside className="sources-panel"><div className="sources-head"><div><h2>Références & sources</h2><p>3 exemples de sources (démonstration)</p></div><Icon name="file"/></div>
-        <div className="source-card selected"><span className="source-number">1</span><div className="source-type"><Icon name="activity" size={14}/>CONSTANTES</div><strong>Évolution tension artérielle</strong><p>« TA 124/78 mmHg, pouls 72 bpm. Amélioration par rapport à la mesure précédente... »</p><small>{fullDateTime({ offset: -7, time: "08:15" })}</small></div>
-        <div className="source-card"><span className="source-number">2</span><div className="source-type"><Icon name="file" size={14}/>ORDONNANCE</div><strong>Prescription du 12 avril</strong><p>« Amlodipine 5 mg, 1 comprimé par voie orale le matin, pendant 3 mois. »</p><small>{DOCTOR} • Signée</small></div>
-        <div className="source-card"><span className="source-number">3</span><div className="source-type"><Icon name="file" size={14}/>ORDONNANCE</div><strong>Supplémentation vitamine D</strong><p>« Vitamine D3 1000 UI, 1 dose par jour pendant 6 mois. »</p><small>{DOCTOR} • Signée</small></div>
-        <div className="privacy-note"><Icon name="shield"/><p><strong>Données fictives</strong><br/>Aucun accès réel n'est journalisé en démonstration.</p></div>
-      </aside>
+      <ChatPanel onSources={setSources}/>
+      <SourcesPanel sources={sources}/>
     </div>
   </main>;
 }

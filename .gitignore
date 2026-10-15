@@ -40,5 +40,9 @@ yarn-error.log
 # OS
 Thumbs.db
 
+# Clés et variables d'environnement : toutes les variantes, sauf le modèle versionné
+.env*
+!.env.example
+
 # Cache de compilation TypeScript (généré)
 *.tsbuildinfo

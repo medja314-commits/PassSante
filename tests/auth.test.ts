@@ -59,7 +59,8 @@ test("connexion réussie : cookie, redirection selon le rôle, sans email dans l
 
 test("mauvais mot de passe : message générique", async () => {
   const resultat = await connecter(faussesDeps(), "MED-001", "mauvais");
-  assert.deepEqual({ ok: resultat.ok, message: resultat.message }, { ok: false, message: MESSAGE_ECHEC });
+  assert.equal(resultat.ok, false);
+  if (!resultat.ok) assert.equal(resultat.message, MESSAGE_ECHEC);
 });
 
 test("matricule inconnu : même message que le mauvais mot de passe", async () => {

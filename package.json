@@ -9,7 +9,7 @@
     "start": "next start",
     "preview": "next start",
     "format": "oxfmt",
-    "test": "node --test tests/auth.test.ts"
+    "test": "tsx --test tests/autorisation.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts tests/auth.test.ts tests/audit.test.ts tests/inscription.test.ts"
   },
   "dependencies": {
     "firebase": "^13.0.0",
@@ -23,6 +23,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "oxfmt": "^0.2.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.0"
   }
 }
