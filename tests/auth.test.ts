@@ -170,3 +170,11 @@ test("compte validé : accès selon le rôle, pas à la page d'attente uniquemen
   assert.equal(accesPourSession(staff, "/dashboard"), true);
   assert.equal(accesPourSession(staff, "/admin/users"), false);
 });
+
+test("échec d'un compte en attente : le statut est renvoyé pour le journal", async () => {
+  const resultat = await connecter(ATTENTE, "PER-ATTENTE", "mauvais");
+  assert.equal(resultat.ok, false);
+  if (resultat.ok) return;
+  assert.equal(resultat.statut, "en_attente");
+  assert.equal(resultat.role, undefined);
+});

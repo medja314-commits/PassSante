@@ -26,13 +26,17 @@ export async function POST(request: Request) {
     const resultat = await connecter(depsConnexion, matricule, motDePasse);
 
     if (!resultat.ok) {
-      // Journal : seulement si le compte est connu (le rôle est requis par logAction).
-      if (resultat.role) logAction(resultat.role, "connexion", "session", resultat.uid, false);
+      // Journal : matricule inconnu = anonyme ; compte connu = son rôle, ou « en_attente » sans rôle.
+      if (!resultat.uid) {
+        logAction("anonyme", "connexion", "session", undefined, false);
+      } else {
+        const acteur = resultat.role ?? (resultat.statut === "en_attente" ? "en_attente" : "anonyme");
+        logAction(acteur, "connexion", "session", resultat.uid, false);
+      }
       return NextResponse.json({ erreur: resultat.message }, { status: 401 });
     }
 
-    // Compte en attente : pas de rôle, donc pas de journal (logAction exige un rôle). À traiter avec le responsable du journal.
-    if (resultat.role) logAction(resultat.role, "connexion", "session", resultat.uid, true);
+    logAction(resultat.role ?? "en_attente", "connexion", "session", resultat.uid, true);
     const reponse = NextResponse.json({ redirect: resultat.redirect });
     reponse.cookies.set(COOKIE_SESSION, resultat.cookie, {
       httpOnly: true,

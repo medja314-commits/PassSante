@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { inscrirePatient, InscriptionRefusee } from "@/lib/server/inscription";
+import { logAction } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -18,17 +19,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const resultat = await inscrirePatient({
+    const { matricule, uid } = await inscrirePatient({
       nom: corps.nom as string,
       prenom: corps.prenom as string,
       email: corps.email as string,
       motDePasse: corps.motDePasse as string,
       confirmation: corps.confirmation as string,
     });
-    return NextResponse.json(resultat, { status: 201 });
+    logAction("en_attente", "inscription", "compte", uid, true);
+    return NextResponse.json({ matricule }, { status: 201 });
   } catch (erreur) {
     if (erreur instanceof InscriptionRefusee) {
       if (erreur.code === "email_pris") {
+        logAction("anonyme", "inscription", "compte", undefined, false);
         return NextResponse.json({ erreur: "Cette adresse e-mail est déjà utilisée." }, { status: 409 });
       }
       return NextResponse.json({ erreurs: erreur.erreurs }, { status: 400 });

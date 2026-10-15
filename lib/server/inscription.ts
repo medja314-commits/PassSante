@@ -13,7 +13,7 @@ export class InscriptionRefusee extends Error {
   }
 }
 
-export async function inscrirePatient(donnees: DonneesInscription): Promise<{ matricule: string }> {
+export async function inscrirePatient(donnees: DonneesInscription): Promise<{ matricule: string; uid: string }> {
   const erreurs = validerInscription(donnees);
   if (erreurs.length > 0) throw new InscriptionRefusee("saisie", erreurs);
 
@@ -60,5 +60,5 @@ export async function inscrirePatient(donnees: DonneesInscription): Promise<{ ma
     throw erreur;
   }
 
-  return { matricule };
+  return { matricule, uid };
 }

@@ -89,7 +89,7 @@ export type DepsConnexion = {
 
 export type ResultatConnexion =
   | { ok: true; cookie: string; redirect: string; uid: string; statut: Statut; role?: Role }
-  | { ok: false; message: string; uid?: string; role?: Role };
+  | { ok: false; message: string; uid?: string; role?: Role; statut?: Statut };
 
 // Ne renvoie jamais l'email : le résultat est destiné au navigateur.
 // En échec, le message est toujours le même, quelle que soit la cause.
@@ -108,7 +108,7 @@ export async function connecter(deps: DepsConnexion, matricule: string, motDePas
   const role = statut === "valide" && roleConnu(profil.role) ? profil.role : undefined;
 
   const jeton = await deps.verifierMotDePasse(profil.email, motDePasse);
-  if (!jeton) return { ok: false, message: MESSAGE_ECHEC, uid, role };
+  if (!jeton) return { ok: false, message: MESSAGE_ECHEC, uid, role, statut };
 
   const cookie = await deps.creerCookie(jeton);
   if (statut === "en_attente") {
