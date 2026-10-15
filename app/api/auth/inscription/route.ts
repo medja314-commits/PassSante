@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { inscrirePatient, inscrirePersonnel, InscriptionRefusee } from "@/lib/server/inscription";
 import { extraireChampsInscription, extraireChampsPersonnel } from "@/lib/server/inscription-core";
 import { logAction } from "@/lib/audit";
+import { MESSAGE_CONFIG_MANQUANTE } from "@/lib/server/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ erreurs: erreur.erreurs }, { status: 400 });
     }
     // Code d'erreur seulement : pas d'e-mail, pas de mot de passe, pas de données de saisie.
-    console.error("Inscription impossible, code :", (erreur as { code?: string }).code ?? "inconnu");
+    if (erreur instanceof Error && erreur.message === MESSAGE_CONFIG_MANQUANTE) {
+      console.error(MESSAGE_CONFIG_MANQUANTE);
+    } else {
+      console.error("Inscription impossible, code :", (erreur as { code?: string }).code ?? "inconnu");
+    }
     return NextResponse.json({ erreur: "Inscription impossible pour le moment." }, { status: 500 });
   }
 }
