@@ -5,6 +5,9 @@ import { getFirestore } from "firebase-admin/firestore";
 // Firebase Admin : SERVEUR UNIQUEMENT. Ne jamais importer ce fichier depuis un composant client.
 // L'initialisation est paresseuse : le build ne lit pas les identifiants, seules les routes serveur les utilisent.
 
+// Message journalisé quand la configuration serveur est absente. Ne contient aucune donnée personnelle.
+export const MESSAGE_CONFIG_MANQUANTE = "Identifiants Firebase Admin manquants : renseigner FIREBASE_* dans .env.local";
+
 let application: App | undefined;
 
 function appAdmin(): App {
@@ -20,7 +23,7 @@ function appAdmin(): App {
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error("Identifiants Firebase Admin manquants : renseigner FIREBASE_* dans .env.local");
+    throw new Error(MESSAGE_CONFIG_MANQUANTE);
   }
 
   application = initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
