@@ -24,14 +24,12 @@ export default function LoginPage() {
     try {
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
       const snap = await getDoc(doc(db, "users", (cred.user.email ?? "").toLowerCase()));
-      console.log("uid:", cred.user.uid, "existe:", snap.exists(), "data:", snap.data());
       const role = snap.data()?.role as string | undefined;
-      if (!role) { setError("Aucun rôle associé à ce compte."); setBusy(false); return; }
+      if (!role) { setError("Matricule ou mot de passe incorrect."); setBusy(false); return; }
       router.push(HOME[role] ?? "/dashboard");
-    } catch (err) {
-      console.error(err);
-      const code = (err as { code?: string }).code ?? "inconnue";
-      setError(`Connexion impossible (${code}).`);
+    } catch {
+      // Message générique : on ne révèle ni le code d'erreur Firebase, ni lequel des deux champs est faux.
+      setError("Matricule ou mot de passe incorrect.");
       setBusy(false);
     }
   };
