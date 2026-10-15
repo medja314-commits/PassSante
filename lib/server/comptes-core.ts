@@ -8,12 +8,14 @@ export type RoleAttribuable = (typeof ROLES_ATTRIBUABLES)[number];
 const FORMAT_PATIENT = /^PS-\d{4}-\d{4}$/;
 
 export type Attribution =
-  | { ok: true; role: RoleAttribuable; patientId?: string }
+  | { ok: true; role: RoleAttribuable; patientId?: string; fonction?: string }
   | { ok: false; erreur: string };
 
 // Un patient doit être rattaché à un dossier existant (identifiant PS-AAAA-NNNN), vérifié par l'admin.
 // Le personnel n'a pas de dossier rattaché.
-export function validerAttribution(role: unknown, patientId: unknown): Attribution {
+export const FONCTIONS_ATTRIBUABLES = ["medecin", "infirmier", "secretaire", "laboratoire"] as const;
+
+export function validerAttribution(role: unknown, patientId: unknown, fonction?: unknown): Attribution {
   if (role !== "hospital_staff" && role !== "patient") {
     return { ok: false, erreur: "Rôle non attribuable depuis cet écran." };
   }
@@ -23,7 +25,11 @@ export function validerAttribution(role: unknown, patientId: unknown): Attributi
     }
     return { ok: true, role, patientId };
   }
-  return { ok: true, role };
+  // Fonction effective : facultative, choisie par l'admin (peut corriger la demande).
+  if (fonction !== undefined && !(FONCTIONS_ATTRIBUABLES as readonly unknown[]).includes(fonction)) {
+    return { ok: false, erreur: "Fonction inconnue." };
+  }
+  return fonction === undefined ? { ok: true, role } : { ok: true, role, fonction: fonction as string };
 }
 
 // Seul un administrateur validé peut gérer les comptes.

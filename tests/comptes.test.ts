@@ -35,3 +35,8 @@ test("personnel validé, compte en attente ou sans session : ne peut pas adminis
   assert.equal(peutAdministrer({ statut: "en_attente" }), false);
   assert.equal(peutAdministrer(undefined), false);
 });
+
+test("personnel : fonction effective valide acceptée, fonction inconnue refusée", () => {
+  assert.deepEqual(validerAttribution("hospital_staff", undefined, "infirmier"), { ok: true, role: "hospital_staff", fonction: "infirmier" });
+  assert.equal(validerAttribution("hospital_staff", undefined, "admin").ok, false);
+});

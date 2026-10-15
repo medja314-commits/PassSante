@@ -9,6 +9,7 @@ export type CompteEnAttente = {
   nom: string;
   prenom: string;
   typeDemande: string;
+  fonctionDemandee: string;
   matricule: string;
   creeLe: string;
 };
@@ -22,6 +23,7 @@ export async function listerComptesEnAttente(): Promise<CompteEnAttente[]> {
       nom: String(d.nom ?? ""),
       prenom: String(d.prenom ?? ""),
       typeDemande: String(d.typeDemande ?? ""),
+      fonctionDemandee: String(d.fonctionDemandee ?? ""),
       matricule: String(d.matricule ?? ""),
       creeLe: String(d.creeLe ?? ""),
     };
@@ -34,11 +36,12 @@ export async function validerCompte(uid: string, attribution: Extract<Attributio
   if (!profil.exists || profil.data()?.statut !== "en_attente") {
     throw new CompteIntrouvable();
   }
-  const claims: { role: RoleAttribuable; statut: "valide"; patientId?: string } = {
+  const claims: { role: RoleAttribuable; statut: "valide"; patientId?: string; fonction?: string } = {
     role: attribution.role,
     statut: "valide",
   };
   if (attribution.role === "patient") claims.patientId = attribution.patientId;
+  if (attribution.fonction) claims.fonction = attribution.fonction;
 
   await auth().setCustomUserClaims(uid, claims);
   await db().collection("comptes").doc(uid).update({ statut: "valide", roleAttribue: attribution.role });

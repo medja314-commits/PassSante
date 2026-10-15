@@ -1,12 +1,12 @@
 import { auth, db } from "./firebase-admin";
-import { choisirMatriculeLibre, validerInscription, type DonneesInscription } from "./inscription-core";
+import { choisirMatriculeLibre, validerInscription, validerInscriptionPersonnel, type DonneesInscription, type DonneesInscriptionPersonnel } from "./inscription-core";
 
 // Inscription patient : SERVEUR UNIQUEMENT. Le compte est créé « en attente » : l'administration le rattache
 // à son dossier après vérification d'identité. Aucun rattachement automatique.
 
 export class InscriptionRefusee extends Error {
   constructor(
-    public readonly code: "saisie" | "email_pris",
+    public readonly code: "saisie" | "email_pris" | "matricule_pris",
     public readonly erreurs: string[] = [],
   ) {
     super(code);
@@ -60,6 +60,58 @@ export async function inscrirePatient(donnees: DonneesInscription): Promise<{ ma
       nom,
       prenom,
       typeDemande: "patient",
+      statut: "en_attente",
+      matricule,
+      creeLe: new Date().toISOString(),
+    });
+  } catch (erreur) {
+    await db().collection("matricules").doc(matricule).delete().catch(() => {});
+    await auth().deleteUser(uid).catch(() => {});
+    throw erreur;
+  }
+
+  return { matricule, uid };
+}
+
+// Personnel : matricule d'hôpital saisi, réservé s'il est libre. La fonction n'est qu'une demande.
+export async function inscrirePersonnel(donnees: DonneesInscriptionPersonnel): Promise<{ matricule: string; uid: string }> {
+  const erreurs = validerInscriptionPersonnel(donnees);
+  if (erreurs.length > 0) throw new InscriptionRefusee("saisie", erreurs);
+
+  const email = donnees.email.trim().toLowerCase();
+  const nom = donnees.nom.trim();
+  const prenom = donnees.prenom.trim();
+  const matricule = donnees.matricule;
+
+  let uid: string;
+  try {
+    uid = (await auth().createUser({ email, password: donnees.motDePasse, displayName: `${prenom} ${nom}` })).uid;
+  } catch (erreur) {
+    if ((erreur as { code?: string }).code === "auth/email-already-exists") {
+      throw new InscriptionRefusee("email_pris");
+    }
+    throw erreur;
+  }
+
+  // Réservation du matricule : refusée s'il existe déjà. Jamais réécrite.
+  try {
+    await db().runTransaction(async transaction => {
+      const existant = await transaction.get(db().collection("matricules").doc(matricule));
+      if (existant.exists) throw new InscriptionRefusee("matricule_pris");
+      transaction.set(db().collection("matricules").doc(matricule), { uid });
+    });
+  } catch (erreur) {
+    await auth().deleteUser(uid).catch(() => {});
+    throw erreur;
+  }
+
+  try {
+    await auth().setCustomUserClaims(uid, { statut: "en_attente", typeDemande: "personnel" });
+    await db().collection("comptes").doc(uid).set({
+      nom,
+      prenom,
+      typeDemande: "personnel",
+      fonctionDemandee: donnees.fonction,
       statut: "en_attente",
       matricule,
       creeLe: new Date().toISOString(),
