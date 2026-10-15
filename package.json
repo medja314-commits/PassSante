@@ -9,10 +9,11 @@
     "start": "next start",
     "preview": "next start",
     "format": "oxfmt",
-    "test": "tsx --test tests/access.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts"
+    "test": "tsx --test tests/access.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts tests/auth.test.ts tests/audit.test.ts tests/inscription.test.ts"
   },
   "dependencies": {
     "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0",
     "next": "^16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
