@@ -90,6 +90,7 @@ export type LabStatus = "Critique" | "À valider" | "En cours" | "Validé";
 export interface LabExam {
   id: string;
   patient: string;
+  patientId: string;
   initials: string;
   exam: string;
   category: string;

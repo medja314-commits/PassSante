@@ -101,10 +101,10 @@ export const auditLogs: AuditLog[] = [
 
 // Examens du laboratoire (état partagé dans le contexte « Examens »).
 export const labExams: LabExam[] = [
-  { id: "LAB-25148", patient: "Yao Kouamé", initials: "YK", exam: "Troponine ultrasensible", category: "Biochimie", requested: { offset: 0, time: "08:42" }, received: "Il y a 18 min", status: "Critique", tone: "red", result: "68 ng/L ↑" },
-  { id: "LAB-25147", patient: "Aminata Mensah", initials: "AM", exam: "Bilan lipidique complet", category: "Biochimie", requested: { offset: -1, time: "14:20" }, received: { offset: 0, time: "09:05" }, status: "À valider", tone: "amber", result: "Disponible" },
-  { id: "IMG-08421", patient: "Fatou Traoré", initials: "FT", exam: "Échographie obstétricale", category: "Imagerie", requested: { offset: -1, time: "11:00" }, received: null, status: "En cours", tone: "blue", result: "—" },
-  { id: "LAB-25139", patient: "Jean-Baptiste Koffi", initials: "JB", exam: "HbA1c + glycémie", category: "Hématologie", requested: { offset: -2, time: "09:30" }, received: { offset: -1, time: "16:10" }, status: "Validé", tone: "green", result: "HbA1c 6,8%" },
-  { id: "LAB-25132", patient: "Salimata N'Dri", initials: "SN", exam: "NFS complète", category: "Hématologie", requested: { offset: -3, time: "15:15" }, received: { offset: -2, time: "10:30" }, status: "Validé", tone: "green", result: "Dans la norme" },
-  { id: "IMG-08412", patient: "Oumar Diabaté", initials: "OD", exam: "Radiographie lombaire", category: "Imagerie", requested: { offset: -5, time: "10:00" }, received: { offset: -4, time: "12:45" }, status: "À valider", tone: "amber", result: "Compte-rendu reçu" },
+  { id: "LAB-25148", patient: "Yao Kouamé", patientId: "PS-2025-0148", initials: "YK", exam: "Troponine ultrasensible", category: "Biochimie", requested: { offset: 0, time: "08:42" }, received: "Il y a 18 min", status: "Critique", tone: "red", result: "68 ng/L ↑" },
+  { id: "LAB-25147", patient: "Aminata Mensah", patientId: "PS-2024-0812", initials: "AM", exam: "Bilan lipidique complet", category: "Biochimie", requested: { offset: -1, time: "14:20" }, received: { offset: 0, time: "09:05" }, status: "À valider", tone: "amber", result: "Disponible" },
+  { id: "IMG-08421", patient: "Fatou Traoré", patientId: "PS-2024-0934", initials: "FT", exam: "Échographie obstétricale", category: "Imagerie", requested: { offset: -1, time: "11:00" }, received: null, status: "En cours", tone: "blue", result: "—" },
+  { id: "LAB-25139", patient: "Jean-Baptiste Koffi", patientId: "PS-2023-0621", initials: "JB", exam: "HbA1c + glycémie", category: "Hématologie", requested: { offset: -2, time: "09:30" }, received: { offset: -1, time: "16:10" }, status: "Validé", tone: "green", result: "HbA1c 6,8%" },
+  { id: "LAB-25132", patient: "Salimata N'Dri", patientId: "PS-2025-0207", initials: "SN", exam: "NFS complète", category: "Hématologie", requested: { offset: -3, time: "15:15" }, received: { offset: -2, time: "10:30" }, status: "Validé", tone: "green", result: "Dans la norme" },
+  { id: "IMG-08412", patient: "Oumar Diabaté", patientId: "PS-2024-0309", initials: "OD", exam: "Radiographie lombaire", category: "Imagerie", requested: { offset: -5, time: "10:00" }, received: { offset: -4, time: "12:45" }, status: "À valider", tone: "amber", result: "Compte-rendu reçu" },
 ];

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "preview": "next start",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "test": "tsx --test tests/access.test.ts tests/assistant.test.ts tests/refus.test.ts tests/generale.test.ts"
   },
   "dependencies": {
     "next": "^16.4.0",
@@ -20,6 +21,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "oxfmt": "^0.2.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.0"
   }
 }
