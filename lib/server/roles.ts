@@ -11,9 +11,15 @@ export function estRoleConnu(valeur: unknown): valeur is Role {
   return typeof valeur === "string" && ROLES_CONNUS.includes(valeur);
 }
 
-export async function definirRole(uid: string, role: Role): Promise<void> {
+// patientId n'est posé que pour le rôle « patient » : il relie le compte à son dossier.
+export async function definirRole(uid: string, role: Role, patientId?: string): Promise<void> {
   if (!estRoleConnu(role)) {
     throw new Error(`Rôle inconnu : ${String(role)}`);
+  }
+  if (role === "patient") {
+    if (!patientId) throw new Error("Un patient doit être relié à un identifiant de dossier");
+    await auth().setCustomUserClaims(uid, { role, patientId });
+    return;
   }
   await auth().setCustomUserClaims(uid, { role });
 }
