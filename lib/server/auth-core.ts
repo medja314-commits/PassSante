@@ -26,7 +26,6 @@ const REGLES_ACCES: { prefixe: string; roles: readonly Role[] }[] = [
   { prefixe: "/agenda", roles: ROLES_PERSONNEL },
   { prefixe: "/examens", roles: ROLES_PERSONNEL },
   { prefixe: "/assistant", roles: ROLES_PERSONNEL },
-  { prefixe: "/api/assistant", roles: ROLES_PERSONNEL },
   { prefixe: "/espace-patient", roles: ["patient"] },
   { prefixe: "/admin", roles: ["admin"] },
 ];

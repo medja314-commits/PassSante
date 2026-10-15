@@ -37,7 +37,5 @@ export const config = {
     "/assistant/:path*",
     "/espace-patient/:path*",
     "/admin/:path*",
-    "/api/assistant",
-    "/api/assistant/:path*",
   ],
 };

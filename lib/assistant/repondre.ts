@@ -1,4 +1,4 @@
-import type { Utilisateur } from "@/lib/assistant/access";
+import type { Acces } from "@/lib/assistant/autorisation";
 import type { ReponseIA } from "@/types/assistant";
 import { modeleParDefaut, type ModeleIA } from "./model";
 import { construirePrompt, MESSAGE_AUCUNE_INFORMATION, MESSAGE_REFUS_DIAGNOSTIC } from "./prompt";
@@ -40,7 +40,7 @@ export function estSortieDiagnostic(texte: string): boolean {
 
 export async function repondre(
   question: string,
-  utilisateur: Utilisateur,
+  acces: Acces,
   modele?: ModeleIA,
 ): Promise<ReponseIA> {
   // 1. Refus avant toute recherche ou appel au modèle.
@@ -49,7 +49,7 @@ export async function repondre(
   }
 
   // 2. Recherche sur les passages autorisés, puis seuil de pertinence (BF-044).
-  const passages = rechercher(question, utilisateur).filter(passage => passage.score >= SCORE_MINIMUM);
+  const passages = rechercher(question, acces).filter(passage => passage.score >= SCORE_MINIMUM);
   if (passages.length === 0) {
     return { texte: MESSAGE_AUCUNE_INFORMATION, sources: [], informationTrouvee: false, origine: "regle" };
   }

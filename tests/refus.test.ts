@@ -1,13 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { Utilisateur } from "@/lib/assistant/access";
+import type { Acces } from "@/lib/assistant/autorisation";
 import { repondre } from "@/lib/assistant/repondre";
 import { MESSAGE_AUCUNE_INFORMATION, MESSAGE_REFUS_DIAGNOSTIC } from "@/lib/assistant/prompt";
 import type { ModeleIA } from "@/lib/assistant/model";
 
 // Carte 3 · NF-14 : refus explicite de diagnostiquer, et origine toujours indiquée.
 
-const personnel: Utilisateur = { id: "t-staff", role: "hospital_staff" };
+const personnel: Acces = { role: "hospital_staff" };
 
 // Modèle espion : compte les appels et renvoie le texte donné.
 function modeleQuiRepond(texte: string) {

@@ -1,4 +1,10 @@
-import type { Ressource, Utilisateur } from "@/lib/assistant/access";
+import type { Acces } from "@/lib/assistant/autorisation";
+
+// Ressource d'un passage : patient concerné et type (pour l'audit et les droits).
+export type Ressource = {
+  type: string;
+  patientId?: string;
+};
 
 // Un passage est un morceau de dossier qui peut être trouvé par la recherche.
 // Il garde de quoi contrôler l'accès (ressource) et de quoi citer sa source (id, source).
@@ -16,7 +22,7 @@ export type PassageClasse = Passage & {
 
 export type RequeteRecherche = {
   question: string;
-  utilisateur: Utilisateur;
+  acces: Acces;
 };
 
 export type ResultatRecherche = {

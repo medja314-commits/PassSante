@@ -1,4 +1,4 @@
-import { filtrerPassages, type Utilisateur } from "@/lib/assistant/access";
+import { passageAutorise, type Acces } from "@/lib/assistant/autorisation";
 import type { PassageClasse } from "@/types/assistant";
 import { decouperDossier } from "./chunk";
 import { construireIndex, motsDe, type Index } from "./index";
@@ -11,9 +11,9 @@ const NOMBRE_DE_RESULTATS = 3;
 
 // Renvoie les passages autorisés les plus pertinents, du plus au moins pertinent.
 // Le score est le nombre de mots distincts de la question trouvés dans le passage.
-export function rechercher(question: string, utilisateur: Utilisateur): PassageClasse[] {
+export function rechercher(question: string, acces: Acces): PassageClasse[] {
   // 1. Filtre par droits AVANT le calcul des scores : un passage interdit ne doit jamais apparaître.
-  const autorises = filtrerPassages(utilisateur, PASSAGES);
+  const autorises = PASSAGES.filter(passage => passageAutorise(acces, passage.ressource));
   const idsAutorises = new Set(autorises.map(passage => passage.id));
 
   // 2. Score : pour chaque mot de la question, on ajoute 1 aux passages qui le contiennent.

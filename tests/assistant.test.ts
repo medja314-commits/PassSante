@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import type { Utilisateur } from "@/lib/assistant/access";
+import type { Acces } from "@/lib/assistant/autorisation";
 import { repondre } from "@/lib/assistant/repondre";
 import { MESSAGE_AUCUNE_INFORMATION, MESSAGE_REFUS_DIAGNOSTIC } from "@/lib/assistant/prompt";
 import type { ModeleIA } from "@/lib/assistant/model";
@@ -32,11 +32,11 @@ const modeleFactice: ModeleIA = {
 };
 
 // Traduit le champ « utilisateur » du JSON en utilisateur applicatif.
-function utilisateurDe(valeur: string | undefined): Utilisateur {
+function utilisateurDe(valeur: string | undefined): Acces {
   if (valeur?.startsWith("patient:")) {
-    return { id: `test-${valeur}`, role: "patient", patientId: valeur.slice("patient:".length) };
+    return { role: "patient", patientId: valeur.slice("patient:".length) };
   }
-  return { id: "test-personnel", role: "hospital_staff" };
+  return { role: "hospital_staff" };
 }
 
 // Liste les écarts entre le résultat attendu et le résultat obtenu. Une liste vide = cas réussi.

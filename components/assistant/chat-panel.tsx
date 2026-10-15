@@ -10,6 +10,9 @@ type Echange = {
   erreur?: string;
 };
 
+// Dossier ouvert dans cette page (démonstration) : les questions sur le dossier sont contrôlées pour ce patient.
+const PATIENT_OUVERT = "PS-2024-0812";
+
 const SUGGESTIONS = [
   "Quel est le résultat de la troponine ?",
   "Quelle est l'allergie connue du patient ?",
@@ -38,7 +41,7 @@ export function ChatPanel({ onSources }: { onSources: (sources: SourceCitee[]) =
       const reponse = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, mode }),
+        body: JSON.stringify({ question, mode, patientId: mode === "dossier" ? PATIENT_OUVERT : undefined }),
       });
       const donnees = await reponse.json();
       if (!reponse.ok) throw new Error(donnees.erreur ?? "Erreur inconnue");
