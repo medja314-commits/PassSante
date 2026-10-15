@@ -42,8 +42,8 @@ export async function POST(request: Request) {
     });
     return reponse;
   } catch (erreur) {
-    // Le détail reste côté serveur.
-    console.error("Connexion impossible :", erreur);
+    // Pas d'objet d'erreur dans le journal : il peut contenir des données de requête.
+    console.error("Connexion impossible : erreur interne du serveur d'authentification.");
     return NextResponse.json({ erreur: "Connexion impossible pour le moment." }, { status: 500 });
   }
 }
