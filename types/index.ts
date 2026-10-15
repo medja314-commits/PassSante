@@ -83,6 +83,8 @@ export interface StaffPatient {
   phone?: string;
   bloodGroup?: string;
   allergy?: string;
+  allergies?: string[];
+  medicalHistory?: string[];
 }
 
 export type LabStatus = "Critique" | "À valider" | "En cours" | "Validé";
@@ -100,7 +102,7 @@ export interface LabExam {
   result: string;
 }
 
-// Consultation saisie pendant la session (données de démonstration, non persistées).
+// Consultation de démonstration, enregistrée dans le stockage local du navigateur.
 export interface SessionConsultation {
   id: string;
   patientId: string;

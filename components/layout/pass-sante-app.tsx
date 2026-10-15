@@ -23,7 +23,7 @@ import { PatientDocuments } from "@/components/patient/patient-documents";
 import { PatientVitals } from "@/components/patient/patient-vitals";
 import { AdminAuditLogs, AdminRoles } from "@/components/admin";
 import { StaffAgenda } from "@/components/staff";
-import { adminRoles, adminUsers, appointmentHistory, getPatientById, staffPatients, upcomingAppointments, vitalMeasurements } from "@/data/mock-data";
+import { adminRoles, adminUsers, appointmentHistory, staffPatients, upcomingAppointments, vitalMeasurements } from "@/data/mock-data";
 import { dateOf, dateParts, dayLabel, dayOf, formatCount, fullDateTime, headingDate, isWeekend, longDate, nowTime, planningWeekdayName, shortDate, whenLabel } from "@/data/dates";
 import { useSession } from "@/components/layout/session-context";
 import type { LabExam, SessionConsultation, StaffPatient } from "@/types";
@@ -71,10 +71,11 @@ function ProSidebar({ view, setView, onMode, toValidate }: { view: string; setVi
 }
 
 function Topbar({ onMobileMenu, onOpenPatient }: { onMobileMenu?: () => void; onOpenPatient: (patientId: string) => void }) {
+  const { patients } = useSession();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const term = query.trim().toLowerCase();
-  const results = term ? staffPatients.filter(patient => `${patient.name} ${patient.id}`.toLowerCase().includes(term)).slice(0, 6) : [];
+  const results = term ? patients.filter(patient => `${patient.name} ${patient.id}`.toLowerCase().includes(term)).slice(0, 6) : [];
 
   // Ctrl+K (Windows) ou ⌘K (Mac) place le curseur dans la recherche.
   useEffect(() => {
@@ -115,7 +116,7 @@ function receivedLabel(exam: LabExam) {
 }
 
 function DashboardView({ openPatient, onStartConsultation }: { openPatient: (patientId: string) => void; onStartConsultation: () => void }) {
-  const { toValidate, criticalCount, recentPatients } = useSession();
+  const { toValidate, criticalCount, recentPatients, patients } = useSession();
   const now = nowTime();
   const appointments = [
     { time: "08:30", initials: "YK", name: "Yao Kouamé", type: "Consultation urgente", detail: "Douleur thoracique • Cabinet 2B", tone: "red" as const, patientId: "PS-2025-0148" },
@@ -136,7 +137,7 @@ function DashboardView({ openPatient, onStartConsultation }: { openPatient: (pat
     <PageTitle eyebrow={headingDate()} title={`Bonjour, ${DOCTOR}`} description="Voici l'essentiel de votre activité clinique aujourd'hui." action={<Button icon="plus" onClick={onStartConsultation}>Démarrer une consultation</Button>}/>
     <div className="stat-grid">
       <article className="stat-card"><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>{weekend ? `Rendez-vous ${weekdayName}` : "Rendez-vous aujourd'hui"}</small><strong>{appointments.length}</strong><p><em>{upcomingCount}</em> consultations restantes</p></div><span className="stat-spark blue-bars"><i/><i/><i/><i/><i/></span></article>
-      <article className="stat-card"><span className="stat-icon green"><Icon name="users"/></span><div><small>Patients suivis</small><strong>{staffPatients.length}</strong><p>Patients de la démonstration</p></div><span className="stat-spark green-bars"><i/><i/><i/><i/><i/></span></article>
+      <article className="stat-card"><span className="stat-icon green"><Icon name="users"/></span><div><small>Patients suivis</small><strong>{patients.length}</strong><p>Patients de la démonstration</p></div><span className="stat-spark green-bars"><i/><i/><i/><i/><i/></span></article>
       <article className="stat-card"><span className="stat-icon amber"><Icon name="flask"/></span><div><small>Résultats à valider</small><strong>{toValidate}</strong><p><b>{criticalCount} prioritaire{criticalCount > 1 ? "s" : ""}</b></p></div><Badge tone="amber">À traiter</Badge></article>
       <article className="stat-card"><span className="stat-icon purple"><Icon name="file"/></span><div><small>Comptes-rendus</small><strong>5</strong><p>À finaliser aujourd'hui</p></div><Badge tone="purple">Brouillons</Badge></article>
     </div>
@@ -163,27 +164,27 @@ function DashboardView({ openPatient, onStartConsultation }: { openPatient: (pat
 }
 
 function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: string) => void; onNewPatient: () => void }) {
-  const { lastConsultationOf } = useSession();
+  const { lastConsultationOf, patients } = useSession();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Tous");
   const now = new Date();
-  const filteredPatients = staffPatients.filter(patient => {
+  const filteredPatients = patients.filter(patient => {
     const matchesQuery = `${patient.name} ${patient.id}`.toLowerCase().includes(query.toLowerCase());
     const matchesFilter = filter === "Tous" || patient.status === filter;
     return matchesQuery && matchesFilter;
   });
   // Consultés ce mois : dernière consultation dans le mois en cours (calculé depuis les dossiers affichés).
-  const consultedThisMonth = staffPatients.filter(patient => {
+  const consultedThisMonth = patients.filter(patient => {
     const day = dayOf(patient.lastVisit.offset, now);
     return day.getMonth() === now.getMonth() && day.getFullYear() === now.getFullYear();
   }).length;
   return <main className="workspace-page">
     <PageTitle eyebrow="DOSSIERS MÉDICAUX" title="Patients" description="Consultez et gérez les dossiers de vos patients." action={<Button icon="plus" onClick={onNewPatient}>Nouveau patient</Button>}/>
     <div className="patient-summary-strip">
-      <div><span className="summary-icon blue"><Icon name="users"/></span><p><strong>{staffPatients.length}</strong><small>Patients suivis</small></p></div>
+      <div><span className="summary-icon blue"><Icon name="users"/></span><p><strong>{patients.length}</strong><small>Patients suivis</small></p></div>
       <div><span className="summary-icon green"><Icon name="check"/></span><p><strong>{consultedThisMonth}</strong><small>Consultés ce mois</small></p></div>
       <div><span className="summary-icon amber"><Icon name="clock"/></span><p><strong>7</strong><small>Suivis à planifier</small></p></div>
-      <div><span className="summary-icon red"><Icon name="alert"/></span><p><strong>{staffPatients.filter(patient => patient.alert).length}</strong><small>Points de vigilance</small></p></div>
+      <div><span className="summary-icon red"><Icon name="alert"/></span><p><strong>{patients.filter(patient => patient.alert || patient.allergies?.length).length}</strong><small>Points de vigilance</small></p></div>
     </div>
     <section className="card directory-card">
       <div className="directory-tools">
@@ -192,11 +193,11 @@ function PatientsView({ openPatient, onNewPatient }: { openPatient: (patientId: 
         <Button variant="soft" icon="filter" unavailable title={soon}>Plus de filtres</Button>
       </div>
       <div className="data-table patient-directory stack-mobile"><table role="table"><thead role="rowgroup"><tr role="row"><th role="columnheader">PATIENT</th><th role="columnheader">N° DE DOSSIER</th><th role="columnheader">DERNIÈRE CONSULTATION</th><th role="columnheader">MOTIF / SUIVI</th><th role="columnheader">PROCHAIN RDV</th><th role="columnheader">STATUT</th><th role="columnheader"></th></tr></thead><tbody role="rowgroup">{filteredPatients.map((patient,index)=><tr role="row" key={patient.id} onClick={()=>openPatient(patient.id)} className="clickable-row">
-        <td role="cell" className="stack-head"><div className="directory-patient"><span className={`list-avatar avatar-${index}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.age} • {patient.gender}{patient.alert&&<em><Icon name="alert" size={10}/>{patient.alert}</em>}</small></span></div></td>
+        <td role="cell" className="stack-head"><div className="directory-patient"><span className={`list-avatar avatar-${index % 4}`}>{patient.initials}</span><span><strong>{patient.name}</strong><small>{patient.age} • {patient.gender}{(patient.alert || patient.allergies?.length) ? <em><Icon name="alert" size={10}/>{patient.alert || patient.allergies?.join(", ")}</em> : null}</small></span></div></td>
         <td role="cell" data-label="N° de dossier"><code>{patient.id}</code></td><td role="cell" data-label="Dernière consultation">{whenLabel(lastConsultationOf(patient.id)?.at ?? patient.lastVisit)}</td><td role="cell" data-label="Motif / suivi"><strong>{patient.reason}</strong></td><td role="cell" data-label="Prochain RDV">{whenLabel(patient.next)}</td><td role="cell" data-label="Statut"><Badge tone={patient.tone}>{patient.status}</Badge></td><td role="cell" className="stack-action"><button className="icon-button" aria-label={`Actions pour ${patient.name}`} aria-disabled="true" title={soon} onClick={event=>event.stopPropagation()}><Icon name="more"/></button></td>
       </tr>)}</tbody></table></div>
       {filteredPatients.length === 0 && <div className="empty-state"><Icon name="search" size={26}/><strong>Aucun patient trouvé</strong><p>Modifiez votre recherche ou vos filtres.</p></div>}
-      <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur {staffPatients.length}</span><div><button aria-disabled="true" title={soon}>Précédent</button><button className="active" aria-disabled="true" title={soon}>1</button><button aria-disabled="true" title={soon}>2</button><button aria-disabled="true" title={soon}>3</button><button aria-disabled="true" title={soon}>Suivant</button></div></div>
+      <div className="pagination"><span>Affichage de {filteredPatients.length} patients sur {patients.length}</span><div><button aria-disabled="true" title={soon}>Précédent</button><button className="active" aria-disabled="true" title={soon}>1</button><button aria-disabled="true" title={soon}>2</button><button aria-disabled="true" title={soon}>3</button><button aria-disabled="true" title={soon}>Suivant</button></div></div>
     </section>
   </main>;
 }
@@ -283,7 +284,7 @@ function sessionArticle(item: SessionConsultation) {
   ].filter(Boolean);
   return <article key={item.id}>
     <div className="timeline-marker"><Icon name="stethoscope" size={16}/></div>
-    <div className="timeline-date">{whenLabel(item.at).toUpperCase()} • SESSION</div>
+    <div className="timeline-date">{whenLabel(item.at).toUpperCase()}</div>
     <div className="consult-card">
       <div className="consult-head"><div><Badge tone="blue">Consultation</Badge><h3>{item.reason}</h3></div></div>
       {item.observations && <p>{item.observations}</p>}
@@ -295,16 +296,41 @@ function sessionArticle(item: SessionConsultation) {
 }
 
 function SessionTimeline({ items }: { items: SessionConsultation[] }) {
-  return <section className="card timeline-card"><div className="section-head"><div><h2>Historique médical</h2><p>Consultations enregistrées pendant cette session</p></div></div>{items.length ? <div className="timeline">{items.map(sessionArticle)}</div> : <div className="empty-state"><Icon name="file" size={26}/><strong>Aucune consultation enregistrée</strong><p>Les consultations démarrées depuis le tableau de bord apparaîtront ici pendant cette session.</p></div>}</section>;
+  return <section className="card timeline-card"><div className="section-head"><div><h2>Historique médical</h2><p>Consultations et comptes-rendus fictifs</p></div></div>{items.length ? <div className="timeline">{items.map(sessionArticle)}</div> : <div className="empty-state"><Icon name="file" size={26}/><strong>Aucune consultation enregistrée</strong><p>Les consultations démarrées depuis le tableau de bord apparaîtront ici.</p></div>}</section>;
+}
+
+function linesFromText(value: string) {
+  return value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+}
+
+function PatientHistoryModal({ patient, close, save }: { patient: StaffPatient; close: () => void; save: (history: string[], allergies: string[]) => void }) {
+  const [history, setHistory] = useState((patient.medicalHistory ?? []).join("\n"));
+  const [allergies, setAllergies] = useState((patient.allergies ?? (patient.allergy ? [patient.allergy] : [])).join("\n"));
+  return <div className="modal-backdrop" onClick={close}><section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="patient-history-title" onClick={event=>event.stopPropagation()}>
+    <div className="modal-head"><div><h2 id="patient-history-title">Antécédents et allergies</h2><p>{patient.name} • {patient.id}</p></div><button className="icon-button" onClick={close} aria-label="Fermer"><Icon name="x"/></button></div>
+    <form onSubmit={event=>{event.preventDefault();save(linesFromText(history),linesFromText(allergies));close();}}>
+      <div className="modal-form">
+        <label>Antécédents médicaux<textarea value={history} onChange={event=>setHistory(event.target.value)} placeholder="Un antécédent par ligne. Laisser vide si non renseigné." rows={4}/></label>
+        <label>Allergies connues<textarea value={allergies} onChange={event=>setAllergies(event.target.value)} placeholder="Une allergie par ligne. Laisser vide si non renseigné." rows={3}/></label>
+        <p className="privacy-note"><Icon name="alert"/><span>Dans cette démonstration, ces données sont fictives et enregistrées dans le navigateur.</span></p>
+      </div>
+      <div className="modal-actions"><Button variant="ghost" onClick={close}>Annuler</Button><Button type="submit">Enregistrer</Button></div>
+    </form>
+  </section></div>;
 }
 
 function PatientRecord({ patient }: { patient: StaffPatient }) {
   const [tab, setTab] = useState("Consultations & CR");
-  const { consultations } = useSession();
-  const sessionItems = consultations.filter(item => item.patientId === patient.id);
+  const { consultations, updatePatientHistory } = useSession();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const sessionItems = consultations.filter(item => item.patientId === patient.id).sort((a, b) => {
+    const dateA = dateOf(a.at);
+    const dateB = dateOf(b.at);
+    return dateB.getTime() - dateA.getTime();
+  });
   const [examOpen, setExamOpen] = useState(false);
   const tabs = ["Consultations & CR", "Constantes", "Prescriptions", "Examens & Labo"];
-  const hasRecordDetails = patient.id === DEMO_RECORD_ID;
+  const allergies = patient.allergies ?? (patient.allergy ? [patient.allergy] : []);
   return <main className="content">
     <div className="breadcrumb"><span>Patients</span><Icon name="chevron" size={13}/><b>Dossier #{patient.id}</b></div>
     <section className="patient-hero">
@@ -316,17 +342,22 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
       </div>
       <div className="hero-badges">
         <div className="blood"><span>Groupe sanguin</span><strong>{patient.bloodGroup ?? "—"}</strong></div>
-        {patient.allergy ? <Badge tone="red"><Icon name="alert" size={15}/>Allergie : {patient.allergy}</Badge> : patient.alert && <Badge tone="amber"><Icon name="alert" size={15}/>{patient.alert}</Badge>}
+        {allergies.length ? <Badge tone="red"><Icon name="alert" size={15}/>Allergie : {allergies.join(", ")}</Badge> : patient.alert && <Badge tone="amber"><Icon name="alert" size={15}/>{patient.alert}</Badge>}
         <Button variant="soft" icon="more" unavailable title={soon}>Actions</Button>
       </div>
     </section>
+    <section className="card patient-clinical-history">
+      <div className="section-head"><div><h2>Antécédents et allergies</h2><p>Informations médicales du dossier</p></div><Button variant="soft" icon="edit" onClick={()=>setHistoryOpen(true)}>Modifier</Button></div>
+      <div className="clinical-history-columns"><div><strong>Antécédents</strong>{patient.medicalHistory?.length ? <ul>{patient.medicalHistory.map((item,index)=><li key={`${item}-${index}`}>{item}</li>)}</ul> : <p>Non renseignés</p>}</div><div><strong>Allergies</strong>{allergies.length ? <ul>{allergies.map((item,index)=><li key={`${item}-${index}`}><Icon name="alert" size={13}/>{item}</li>)}</ul> : <p>Aucune renseignée</p>}</div></div>
+      <small className="demo-data-note">Données fictives de démonstration</small>
+    </section>
     <div className="tab-bar">{tabs.map(t => <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>{t}{t === "Examens & Labo" && <i>{patientLabItems.length}</i>}</button>)}</div>
-    {!hasRecordDetails && tab === "Consultations & CR" ? <SessionTimeline items={sessionItems}/> : !hasRecordDetails ? <section className="card empty-state"><Icon name="file" size={26}/><strong>Détails non disponibles</strong><p>Le détail des consultations, constantes et examens de ce dossier n'est pas disponible dans cette démonstration.</p></section> : <>
-      {tab === "Consultations & CR" && <Consultations sessionItems={sessionItems}/>}
-      {tab === "Constantes" && <ConstantsView/>}
-      {tab === "Prescriptions" && <Prescriptions/>}
-      {tab === "Examens & Labo" && <LabView onRequestExam={()=>setExamOpen(true)}/>}
-    </>}
+    {tab === "Consultations & CR" && <SessionTimeline items={sessionItems}/>}
+    {tab === "Constantes" && patient.id === DEMO_RECORD_ID && <ConstantsView/>}
+    {tab === "Prescriptions" && patient.id === DEMO_RECORD_ID && <Prescriptions/>}
+    {tab === "Examens & Labo" && patient.id === DEMO_RECORD_ID && <LabView onRequestExam={()=>setExamOpen(true)}/>}
+    {tab !== "Consultations & CR" && patient.id !== DEMO_RECORD_ID && <section className="card empty-state"><Icon name="file" size={26}/><strong>Détails non disponibles</strong><p>Cette section ne contient pas encore de données pour ce dossier.</p></section>}
+    {historyOpen && <PatientHistoryModal patient={patient} close={()=>setHistoryOpen(false)} save={(history,allergyList)=>updatePatientHistory(patient.id,history,allergyList)}/>}
     {examOpen && <ExamRequestModal patient={patient} close={()=>setExamOpen(false)}/>}
   </main>;
 }
@@ -461,20 +492,32 @@ function AssistantView() {
 
 const newPatientSexes = ["Femme", "Homme"];
 
-function NewPatientModal({ close }: { close: () => void }) {
-  const [form, setForm] = useState({ name: "", birthDate: "", gender: "", phone: "", reason: "" });
+type NewPatientInput = Omit<StaffPatient, "id" | "initials" | "age" | "lastVisit" | "next" | "status" | "tone" | "alert">;
+
+function NewPatientModal({ close, onCreate }: { close: () => void; onCreate: (patient: NewPatientInput) => StaffPatient }) {
+  const [form, setForm] = useState({ name: "", birthDate: "", gender: "", phone: "", reason: "", medicalHistory: "", allergies: "" });
   const [error, setError] = useState("");
-  const [blocked, setBlocked] = useState(false);
   const { role } = useRole();
   const update = (field: keyof typeof form, value: string) => setForm(current=>({...current,[field]:value}));
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (form.name.trim().length < 2) { setError("Renseignez le nom complet du patient."); setBlocked(false); return; }
-    if (!form.birthDate || new Date(form.birthDate) > new Date()) { setError("Indiquez une date de naissance valide."); setBlocked(false); return; }
-    if (!form.gender) { setError("Sélectionnez le sexe du patient."); setBlocked(false); return; }
-    if (form.phone && !/^\+?[\d\s]{8,}$/.test(form.phone.trim())) { setError("Vérifiez le numéro de téléphone."); setBlocked(false); return; }
-    logAction(role, "create", "patients");
-    setError(""); setBlocked(true);
+    if (form.name.trim().length < 2) { setError("Renseignez le nom complet du patient."); return; }
+    if (!form.birthDate || new Date(form.birthDate) > new Date()) { setError("Indiquez une date de naissance valide."); return; }
+    if (!form.gender) { setError("Sélectionnez le sexe du patient."); return; }
+    if (form.phone && !/^\+?[\d\s]{8,}$/.test(form.phone.trim())) { setError("Vérifiez le numéro de téléphone."); return; }
+    setError("");
+    const created = onCreate({
+      name: form.name.trim(),
+      gender: form.gender,
+      birthDate: form.birthDate,
+      phone: form.phone.trim() || undefined,
+      reason: form.reason.trim() || "Première consultation",
+      bloodGroup: undefined,
+      allergies: linesFromText(form.allergies),
+      medicalHistory: linesFromText(form.medicalHistory),
+    });
+    logAction(role, "create", "patients", created.id);
+    close();
   };
   return <div className="modal-backdrop" onClick={close}><section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="new-patient-title" onClick={e=>e.stopPropagation()}>
     <div className="modal-head"><div><h2 id="new-patient-title">Nouveau patient</h2><p>Renseignez l'identité du patient.</p></div><button className="icon-button" onClick={close} aria-label="Fermer"><Icon name="x"/></button></div>
@@ -485,8 +528,9 @@ function NewPatientModal({ close }: { close: () => void }) {
         <label>Sexe<select value={form.gender} onChange={e=>update("gender",e.target.value)} aria-required="true"><option value="">Sélectionner</option>{newPatientSexes.map(item=><option key={item}>{item}</option>)}</select></label>
         <label>Téléphone (facultatif)<input type="tel" value={form.phone} onChange={e=>update("phone",e.target.value)} placeholder="+225 07 00 00 00 00"/></label>
         <label>Motif de consultation (facultatif)<textarea value={form.reason} onChange={e=>update("reason",e.target.value)} placeholder="Motif de la première consultation..."/></label>
+        <label>Antécédents (facultatif)<textarea value={form.medicalHistory} onChange={e=>update("medicalHistory",e.target.value)} placeholder="Un antécédent par ligne"/></label>
+        <label>Allergies (facultatif)<textarea value={form.allergies} onChange={e=>update("allergies",e.target.value)} placeholder="Une allergie par ligne"/></label>
         {error && <p className="form-error"><Icon name="alert" size={14}/>{error}</p>}
-        {blocked && <p className="form-error"><Icon name="alert" size={14}/>Dossier non créé : l'enregistrement n'est pas encore connecté. Contactez la clinique.</p>}
       </div>
       <div className="modal-actions"><Button variant="ghost" onClick={close}>Annuler</Button><Button type="submit">Créer le dossier</Button></div>
     </form>
@@ -498,21 +542,22 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
   const [view, setView] = useState(initialView);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showNewPatient, setShowNewPatient] = useState(false);
-  const { toValidate } = useSession();
+  const { toValidate, addPatient, patients, storageLoaded } = useSession();
   const [showConsult, setShowConsult] = useState(false);
-  const patient = patientId ? getPatientById(patientId) : undefined;
+  const patient = patientId ? patients.find(item => item.id === patientId) : undefined;
   const { role } = useRole();
   const isRecord = view === "patient-record" && !!patientId;
   const denied = isRecord ? !canAccessPatient(role, patientId!) : !can(role, "read", resourceOf(view));
-      useEffect(() => {
-          if (denied && isRecord) logAction(role, "read", "dossier", patientId, false);
-      }, [denied, isRecord, role, patientId]);
+  useEffect(() => {
+    if (denied && isRecord) logAction(role, "read", "dossier", patientId, false);
+  }, [denied, isRecord, role, patientId]);
+  const createPatient = (input: Parameters<typeof addPatient>[0]) => addPatient(input);
   const renderView = () => {
      
     if (denied) return <main className="content"><section className="card empty-state"><Icon name="shield" size={26}/><strong>Accès refusé</strong><p>Votre rôle ne permet pas d'accéder à ce dossier ou à cette page.</p></section></main>;
     if (view === "dashboard") return <DashboardView openPatient={onOpenPatient} onStartConsultation={()=>setShowConsult(true)}/>;
     if (view === "patient") return <PatientsView openPatient={onOpenPatient} onNewPatient={()=>setShowNewPatient(true)}/>;
-    if (view === "patient-record") return patient ? <PatientRecord key={patient.id} patient={patient}/> : <main className="content"><section className="card empty-state"><Icon name="search" size={26}/><strong>Dossier introuvable</strong><p>Aucun dossier ne correspond à cet identifiant.</p></section></main>;
+    if (view === "patient-record") return patient ? <PatientRecord key={patient.id} patient={patient}/> : <main className="content"><section className="card empty-state"><Icon name={storageLoaded ? "search" : "clock"} size={26}/><strong>{storageLoaded ? "Dossier introuvable" : "Chargement du dossier"}</strong><p>{storageLoaded ? "Aucun dossier ne correspond à cet identifiant." : "Récupération des données de démonstration locales…"}</p></section></main>;
     if (view === "agenda") return <StaffAgenda onOpenPatient={onOpenPatient}/>;
     if (view === "examens") return <ExamsOverview/>;
     return <AssistantView/>;
@@ -520,7 +565,7 @@ function ProApp({ onMode, initialView = "patient", onView, onOpenPatient, patien
   return <div className="pro-app">
     <div className={mobileOpen ? "sidebar-wrap open" : "sidebar-wrap"}><ProSidebar view={view} setView={(v)=>{setView(v);setMobileOpen(false);onView(v)}} onMode={onMode} toValidate={toValidate}/><button className="sidebar-overlay" onClick={()=>setMobileOpen(false)} aria-label="Fermer le menu"/></div>
     <div className="pro-main"><Topbar onMobileMenu={()=>setMobileOpen(true)} onOpenPatient={onOpenPatient}/>{renderView()}</div>
-    {showNewPatient && <NewPatientModal close={()=>setShowNewPatient(false)}/>}
+    {showNewPatient && <NewPatientModal close={()=>setShowNewPatient(false)} onCreate={input=>{ const created = createPatient(input); onOpenPatient(created.id); return created; }}/>}
     {showConsult && <ConsultationFlow onClose={()=>setShowConsult(false)} onOpenPatient={onOpenPatient}/>}
   </div>;
 }

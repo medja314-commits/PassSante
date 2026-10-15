@@ -1,4 +1,4 @@
-import type { AuditLog, LabExam, MedicalDocument, PatientAppointment, RoleDefinition, StaffPatient, VitalMeasurement } from "@/types";
+import type { AuditLog, LabExam, MedicalDocument, PatientAppointment, RoleDefinition, SessionConsultation, StaffPatient, VitalMeasurement } from "@/types";
 
 // Toutes les dates sont des décalages par rapport à aujourd'hui (voir data/dates.ts).
 // Données de démonstration : aucune information réelle.
@@ -6,12 +6,23 @@ import type { AuditLog, LabExam, MedicalDocument, PatientAppointment, RoleDefini
 // Dossiers minimaux des patients suivis par le personnel.
 // Les champs absents affichent « Non renseigné » : aucune donnée médicale n'est inventée.
 export const staffPatients: StaffPatient[] = [
-  { id: "PS-2024-0812", initials: "AM", name: "Aminata Mensah", age: "34 ans", gender: "Femme", lastVisit: { offset: 0, time: "09:40" }, reason: "Suivi hypertension", status: "Suivi actif", tone: "green", alert: "Pénicilline", next: { offset: 7, time: "09:30" }, birthDate: "18 août 1990", phone: "+225 07 48 22 19 05", bloodGroup: "O+", allergy: "Pénicilline" },
-  { id: "PS-2025-0148", initials: "YK", name: "Yao Kouamé", age: "58 ans", gender: "Homme", lastVisit: { offset: 0, time: "08:15" }, reason: "Douleur thoracique", status: "À surveiller", tone: "red", alert: "Risque cardio", next: { offset: 0, time: "15:00" } },
-  { id: "PS-2024-0934", initials: "FT", name: "Fatou Traoré", age: "27 ans", gender: "Femme", lastVisit: { offset: -1, time: "16:20" }, reason: "Suivi de grossesse", status: "Suivi actif", tone: "green", alert: "", next: { offset: 14, time: "10:15" } },
-  { id: "PS-2023-0621", initials: "JB", name: "Jean-Baptiste Koffi", age: "71 ans", gender: "Homme", lastVisit: { offset: -4 }, reason: "Diabète type 2", status: "Résultats reçus", tone: "blue", alert: "", next: { offset: 10, time: "11:00" } },
-  { id: "PS-2025-0207", initials: "SN", name: "Salimata N'Dri", age: "43 ans", gender: "Femme", lastVisit: { offset: -6 }, reason: "Bilan annuel", status: "Nouveau", tone: "purple", alert: "Latex", next: { offset: 12, time: "14:30" }, allergy: "Latex" },
-  { id: "PS-2024-0309", initials: "OD", name: "Oumar Diabaté", age: "39 ans", gender: "Homme", lastVisit: { offset: -8 }, reason: "Lombalgie chronique", status: "Suivi actif", tone: "green", alert: "", next: { offset: 18, time: "09:00" } },
+  { id: "PS-2024-0812", initials: "AM", name: "Aminata Mensah", age: "34 ans", gender: "Femme", lastVisit: { offset: 0, time: "09:40" }, reason: "Suivi hypertension", status: "Suivi actif", tone: "green", alert: "Pénicilline", next: { offset: 7, time: "09:30" }, birthDate: "18 août 1990", phone: "+225 07 48 22 19 05", bloodGroup: "O+", allergy: "Pénicilline", allergies: ["Pénicilline"], medicalHistory: ["Hypertension artérielle (donnée fictive)"] },
+  { id: "PS-2025-0148", initials: "YK", name: "Yao Kouamé", age: "58 ans", gender: "Homme", lastVisit: { offset: 0, time: "08:15" }, reason: "Douleur thoracique", status: "À surveiller", tone: "red", alert: "Risque cardio", next: { offset: 0, time: "15:00" }, allergies: [], medicalHistory: [] },
+  { id: "PS-2024-0934", initials: "FT", name: "Fatou Traoré", age: "27 ans", gender: "Femme", lastVisit: { offset: -1, time: "16:20" }, reason: "Suivi de grossesse", status: "Suivi actif", tone: "green", alert: "", next: { offset: 14, time: "10:15" }, allergies: [], medicalHistory: ["Suivi de grossesse (donnée fictive)"] },
+  { id: "PS-2023-0621", initials: "JB", name: "Jean-Baptiste Koffi", age: "71 ans", gender: "Homme", lastVisit: { offset: -4 }, reason: "Diabète type 2", status: "Résultats reçus", tone: "blue", alert: "", next: { offset: 10, time: "11:00" }, allergies: [], medicalHistory: ["Diabète de type 2 (donnée fictive)"] },
+  { id: "PS-2025-0207", initials: "SN", name: "Salimata N'Dri", age: "43 ans", gender: "Femme", lastVisit: { offset: -6 }, reason: "Bilan annuel", status: "Nouveau", tone: "purple", alert: "Latex", next: { offset: 12, time: "14:30" }, allergy: "Latex", allergies: ["Latex"], medicalHistory: [] },
+  { id: "PS-2024-0309", initials: "OD", name: "Oumar Diabaté", age: "39 ans", gender: "Homme", lastVisit: { offset: -8 }, reason: "Lombalgie chronique", status: "Suivi actif", tone: "green", alert: "", next: { offset: 18, time: "09:00" }, allergies: [], medicalHistory: ["Lombalgie chronique (donnée fictive)"] },
+];
+
+// Historique initial pour la démonstration : données entièrement fictives, modifiables pendant la session.
+export const demoConsultations: SessionConsultation[] = [
+  { id: "seed-cons-1", patientId: "PS-2024-0812", at: { offset: -21, time: "09:40" }, reason: "Suivi hypertension artérielle", observations: "Consultation de suivi. Mesure et observations de démonstration.", conclusion: "Suivi à poursuivre (donnée fictive)", vitals: { systolic: 124, diastolic: 78, heartRate: 72 } },
+  { id: "seed-cons-2", patientId: "PS-2024-0812", at: { offset: -60, time: "10:30" }, reason: "Consultation de contrôle", observations: "Compte rendu de démonstration.", conclusion: "Contrôle planifié (donnée fictive)", vitals: { systolic: 130, diastolic: 82 } },
+  { id: "seed-cons-3", patientId: "PS-2025-0148", at: { offset: -4, time: "08:15" }, reason: "Évaluation douleur thoracique", observations: "Entrée de démonstration à surveiller.", conclusion: "Réévaluation planifiée (donnée fictive)", vitals: {} },
+  { id: "seed-cons-4", patientId: "PS-2024-0934", at: { offset: -8, time: "16:20" }, reason: "Suivi de grossesse", observations: "Consultation fictive de suivi.", conclusion: "Suivi poursuivi (donnée fictive)", vitals: {} },
+  { id: "seed-cons-5", patientId: "PS-2023-0621", at: { offset: -30, time: "11:00" }, reason: "Suivi diabète de type 2", observations: "Données d'exemple pour le dossier.", conclusion: "Contrôle périodique (donnée fictive)", vitals: {} },
+  { id: "seed-cons-6", patientId: "PS-2025-0207", at: { offset: -45, time: "14:30" }, reason: "Bilan annuel", observations: "Données d'exemple pour le dossier.", conclusion: "Bilan à compléter (donnée fictive)", vitals: {} },
+  { id: "seed-cons-7", patientId: "PS-2024-0309", at: { offset: -35, time: "09:00" }, reason: "Suivi lombalgie chronique", observations: "Données d'exemple pour le dossier.", conclusion: "Suivi poursuivi (donnée fictive)", vitals: {} },
 ];
 
 export function getPatientById(id: string) {

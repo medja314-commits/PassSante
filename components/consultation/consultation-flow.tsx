@@ -5,7 +5,6 @@ import { useState, type FormEvent } from "react";
 import { Button, Icon } from "@/components/ui";
 import { VitalInput } from "@/components/patient/vital-input";
 import { validateVital, type VitalKey } from "@/data/vital-limits";
-import { staffPatients } from "@/data/mock-data";
 import { useSession } from "@/components/layout/session-context";
 import type { SessionConsultation, StaffPatient } from "@/types";
 
@@ -22,7 +21,7 @@ const vitalFields: { key: VitalKey; placeholder: string; step: string }[] = [
 const emptyVitals: Record<VitalKey, string> = { systolic: "", diastolic: "", heartRate: "", temperature: "", weight: "" };
 
 export function ConsultationFlow({ onClose, onOpenPatient }: { onClose: () => void; onOpenPatient: (patientId: string) => void }) {
-  const { addConsultation } = useSession();
+  const { addConsultation, patients } = useSession();
   const [step, setStep] = useState<Step>("patient");
   const [search, setSearch] = useState("");
   const [patient, setPatient] = useState<StaffPatient | null>(null);
@@ -30,7 +29,7 @@ export function ConsultationFlow({ onClose, onOpenPatient }: { onClose: () => vo
   const [vitals, setVitals] = useState<Record<VitalKey, string>>(emptyVitals);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const term = search.trim().toLowerCase();
-  const matches = staffPatients.filter(item => `${item.name} ${item.id}`.toLowerCase().includes(term));
+  const matches = patients.filter(item => `${item.name} ${item.id}`.toLowerCase().includes(term));
 
   const choose = (item: StaffPatient) => { setPatient(item); setErrors({}); setStep("form"); };
 
@@ -75,7 +74,7 @@ export function ConsultationFlow({ onClose, onOpenPatient }: { onClose: () => vo
     </form>}
 
     {step === "done" && patient && <>
-      <div className="modal-body"><p className="form-success"><Icon name="check" size={14}/>Consultation enregistrée pour cette session (données de démonstration).</p><p className="consult-hint">Elle apparaît dans le dossier de {patient.name} et dans « Patients récemment consultés ».</p></div>
+      <div className="modal-body"><p className="form-success"><Icon name="check" size={14}/>Consultation enregistrée dans les données de démonstration locales.</p><p className="consult-hint">Elle apparaît dans le dossier de {patient.name} et dans « Patients récemment consultés ».</p></div>
       <div className="modal-actions"><Button variant="ghost" onClick={onClose}>Fermer</Button><Button onClick={()=>{ onClose(); onOpenPatient(patient.id); }}>Voir le dossier</Button></div>
     </>}
   </section></div>;

@@ -104,6 +104,14 @@ h1, h2, h3, .logo { font-family: var(--font-jakarta), system-ui, sans-serif; }
 .patient-meta { display: flex; gap: 22px; color: var(--muted); font-size: 12px; }
 .patient-meta b { color: var(--muted); text-transform: uppercase; font-size: 12px; margin-right: 5px; letter-spacing: .5px; }
 .hero-badges { display: flex; align-items: center; gap: 12px; }
+.patient-clinical-history { margin-top: 16px; padding: 18px 20px; }
+.clinical-history-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.clinical-history-columns > div { min-width: 0; }
+.clinical-history-columns strong { color: var(--ink); font-size: 13px; }
+.clinical-history-columns p, .clinical-history-columns ul { color: var(--muted); font-size: 13px; margin: 8px 0 0; padding-left: 18px; }
+.clinical-history-columns ul { display: grid; gap: 6px; }
+.clinical-history-columns li svg { color: var(--red); vertical-align: -2px; margin-right: 5px; }
+.demo-data-note { color: var(--muted); display: block; font-size: 10px; margin-top: 14px; }
 .blood { border-right: 1px solid var(--line); padding-right: 16px; text-align: center; display: flex; flex-direction: column; }
 .blood span { font-size: 12px; text-transform: uppercase; color: var(--muted); }
 .blood strong { font: 800 19px var(--font-jakarta), system-ui, sans-serif; color: #c82e2e; margin-top: 3px; }
@@ -847,6 +855,7 @@ code { font-family: "SFMono-Regular",Consolas,monospace; font-size: 12px; }
   .top-actions { gap: 5px; }
   .content { padding: 15px 13px 25px; }
   .patient-hero { align-items: flex-start; padding: 14px; flex-wrap: wrap; }
+  .clinical-history-columns { grid-template-columns: 1fr; gap: 14px; }
   .avatar-patient { width: 48px; height: 48px; }
   .patient-meta { display: none; }
   .hero-badges { width: 100%; }
