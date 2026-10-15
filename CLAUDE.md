@@ -33,14 +33,11 @@ Fonction centrale : `can(role, action, resource)` dans `lib/rbac.ts`.
 - Actions : `read`, `create`, `update`.
 - Ressources : `patients`, `dossier`, `rdv`, `assistant`, `logs`.
 
-| nnnRôle   |      patients        | dossier              | rdv          | assistant | logs |
-|---        |---                   |---                   |---           |---        |---   |
-| medecin   | read, create, update | read, create, update | read, create | read      |   —  |
-| infirmier | read                 | read, update         | read         | read      |   —  |
-|secretaire | read, create, update |           —          | read, create |     —     |   —  |
-| labo      | read                 | read, update         |      —       |     —     |   —  |
-| patient   |          —           | read                 | read         | read      |   —  |
-| admin     | read                 |           —          |      —       |     —     | read |
+| nnnRôle        |      patients        | dossier              | rdv          | assistant | logs |
+|---             |---                   |---                   |---           |---        |---   |
+| hospital_staff | read, create, update | read, create, update | read, create | read      |   —  |
+| patient        |          —           | read                 | read         | read      |   —  |
+| admin          | read                 |           —          |      —       |     —     | read |
 
 La matrice est un brouillon à figer en équipe (BF-003). Toute modification de la matrice alimente l'interface, l'isolation et le RAG : elle passe en PR et est annoncée.
 

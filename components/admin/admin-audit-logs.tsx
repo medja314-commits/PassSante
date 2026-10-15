@@ -6,6 +6,7 @@ import { isoStamp } from "@/data/dates";
 import type { AuditLog } from "@/types";
 import { Badge, Button, Icon } from "@/components/ui";
 import { getLogs } from "@/lib/audit";
+import { ROLES } from "@/lib/rbac";
 
 export function AdminAuditLogs() {
   const [query, setQuery] = useState("");
@@ -17,7 +18,7 @@ export function AdminAuditLogs() {
       id: `live-${i}`,
       timestamp: { offset: 0, time: new Date(l.date).toTimeString().slice(0, 5) },
       userEmail: `${l.role}@demo.local`,
-      userName: l.role,
+      userName: ROLES.find(r => r.id === l.role)?.label ?? l.role,
       action: l.action,
       resource: l.targetId ? `${l.resource} ${l.targetId}` : l.resource,
       ipAddress: "127.0.0.1",
