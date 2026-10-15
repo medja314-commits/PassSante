@@ -23,7 +23,7 @@ export default function LoginPage() {
     setError(""); setBusy(true);
     try {
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const snap = await getDoc(doc(db, "users", cred.user.uid));
+      const snap = await getDoc(doc(db, "users", (cred.user.email ?? "").toLowerCase()));
       console.log("uid:", cred.user.uid, "existe:", snap.exists(), "data:", snap.data());
       const role = snap.data()?.role as string | undefined;
       if (!role) { setError("Aucun rôle associé à ce compte."); setBusy(false); return; }

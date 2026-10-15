@@ -42,7 +42,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       setUser(u);
       if (u) {
         try {
-          const snap = await getDoc(doc(db, "users", u.uid));
+          const snap = await getDoc(doc(db, "users", (u.email ?? "").toLowerCase()));
           const r = snap.data()?.role;
           if (ROLES.some(x => x.id === r)) setRoleState(r as Role);
         } catch {}
