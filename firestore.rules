@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// Règles versionnées ici pour relecture. Elles doivent être copiées dans la console Firebase
+// (Firestore > Règles) ou déployées avec la CLI Firebase : le dépôt ne les applique pas seul.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Profil utilisateur : lisible uniquement par son propriétaire (email du jeton).
+    // Aucune écriture côté client : le rôle n'est jamais stocké ici et ne peut pas être modifié par l'utilisateur.
+    match /users/{email} {
+      allow read: if request.auth != null && request.auth.token.email.lower() == email;
+      allow write: if false;
+    }
+
+    // Index matricule → compte : réservé au serveur (Firebase Admin ignore ces règles).
+    match /matricules/{matricule} {
+      allow read, write: if false;
+    }
+
+    // Tout le reste est refusé par défaut.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
