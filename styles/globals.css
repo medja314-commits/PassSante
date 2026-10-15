@@ -1440,3 +1440,25 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .role-switcher select { font: inherit; }
 
 
+
+/* ---- Page de connexion ---- */
+.auth-page { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); }
+.auth-card { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 32px 28px 24px; box-shadow: 0 10px 30px rgba(16, 36, 62, .08); }
+.auth-logo { display: flex; justify-content: center; margin-bottom: 20px; }
+.auth-card h1 { margin: 0; text-align: center; font-size: 22px; color: var(--ink); }
+.auth-intro { margin: 6px 0 22px; text-align: center; font-size: 13px; color: var(--muted); }
+.auth-form { display: grid; gap: 16px; }
+.auth-field { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.auth-field input { width: 100%; min-height: 44px; border: 1px solid #dbe3e9; border-radius: var(--radius); padding: 0 12px; font: inherit; font-weight: 400; color: var(--ink); background: white; }
+.auth-field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); outline: 0; }
+.auth-password { position: relative; display: block; }
+.auth-password input { padding-right: 44px; }
+.auth-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.auth-toggle:hover { background: var(--blue-soft); color: var(--blue-dark); }
+.auth-toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+.auth-erreur { margin: 0; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--radius); background: var(--red-soft); color: #b42318; font-size: 13px; font-weight: 600; }
+.auth-submit { width: 100%; min-height: 46px; font-size: 15px; }
+.auth-liens { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+.auth-liens a { color: var(--blue-dark); font-weight: 600; text-decoration: none; }
+.auth-liens a:hover { text-decoration: underline; }
+@media (max-width: 480px) { .auth-card { padding: 24px 20px 20px; } }
