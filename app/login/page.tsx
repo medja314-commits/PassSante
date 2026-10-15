@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Icon, Logo } from "@/components/ui";
 
 const MESSAGE_ECHEC = "Matricule ou mot de passe incorrect.";
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [matricule, setMatricule] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
+  const [voirMotDePasse, setVoirMotDePasse] = useState(false);
   const [erreur, setErreur] = useState("");
   const [occupe, setOccupe] = useState(false);
 
@@ -39,16 +41,39 @@ export default function LoginPage() {
     }
   };
 
-  return <main style={{ maxWidth: 380, margin: "80px auto", padding: 16 }}>
-    <h1>Connexion</h1>
-    <p>Données fictives uniquement.</p>
-    <form onSubmit={soumettre} noValidate style={{ display: "grid", gap: 12 }}>
-      <label>Matricule<input type="text" value={matricule} onChange={e => setMatricule(e.target.value)} autoComplete="username" style={{ width: "100%" }} /></label>
-      <label>Mot de passe<input type="password" value={motDePasse} onChange={e => setMotDePasse(e.target.value)} autoComplete="current-password" style={{ width: "100%" }} /></label>
-      {erreur && <p role="alert" style={{ color: "#b42318" }}>{erreur}</p>}
-      <button type="submit" disabled={occupe || !matricule || !motDePasse}>{occupe ? "Connexion..." : "Se connecter"}</button>
-    </form>
-    <p><Link href="/inscription">Créer un compte patient</Link></p>
-    <p><Link href="/mot-de-passe-oublie">Mot de passe oublié ?</Link></p>
+  return <main className="auth-page">
+    <section className="auth-card" aria-labelledby="titre-connexion">
+      <div className="auth-logo"><Logo/></div>
+      <h1 id="titre-connexion">Connexion</h1>
+      <p className="auth-intro">Espace sécurisé. Données fictives uniquement.</p>
+
+      <form onSubmit={soumettre} noValidate className="auth-form">
+        <label className="auth-field">
+          <span>Matricule</span>
+          <input type="text" value={matricule} onChange={e => setMatricule(e.target.value)} autoComplete="username" placeholder="Ex. PAT-2026-000123" />
+        </label>
+
+        <label className="auth-field">
+          <span>Mot de passe</span>
+          <span className="auth-password">
+            <input type={voirMotDePasse ? "text" : "password"} value={motDePasse} onChange={e => setMotDePasse(e.target.value)} autoComplete="current-password" />
+            <button type="button" className="auth-toggle" onClick={() => setVoirMotDePasse(v => !v)} aria-label={voirMotDePasse ? "Masquer le mot de passe" : "Afficher le mot de passe"}>
+              <Icon name="lock" size={16}/>
+            </button>
+          </span>
+        </label>
+
+        {erreur && <p role="alert" className="auth-erreur"><Icon name="alert" size={16}/>{erreur}</p>}
+
+        <button type="submit" className="button button-primary auth-submit" disabled={occupe || !matricule || !motDePasse}>
+          {occupe ? "Connexion en cours…" : "Se connecter"}
+        </button>
+      </form>
+
+      <nav className="auth-liens" aria-label="Autres actions">
+        <Link href="/mot-de-passe-oublie">Mot de passe oublié ?</Link>
+        <Link href="/inscription">Créer un compte</Link>
+      </nav>
+    </section>
   </main>;
 }
