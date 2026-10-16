@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { COOKIE_SESSION, DUREE_SESSION_MS, MESSAGE_ECHEC, connecter, matriculeValide } from "@/lib/server/auth-core";
 import { depsConnexion } from "@/lib/server/auth-firebase";
+import { MESSAGE_CONFIG_MANQUANTE } from "@/lib/server/firebase-admin";
 import { logAction } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -47,8 +48,12 @@ export async function POST(request: Request) {
     });
     return reponse;
   } catch (erreur) {
-    // Pas d'objet d'erreur dans le journal : il peut contenir des données de requête.
-    console.error("Connexion impossible : erreur interne du serveur d'authentification.");
+    // Message ou code d'erreur seulement : pas d'objet d'erreur, il peut contenir des données de requête.
+    if (erreur instanceof Error && erreur.message === MESSAGE_CONFIG_MANQUANTE) {
+      console.error(MESSAGE_CONFIG_MANQUANTE);
+    } else {
+      console.error("Connexion impossible, code :", (erreur as { code?: string }).code ?? "inconnu");
+    }
     return NextResponse.json({ erreur: "Connexion impossible pour le moment." }, { status: 500 });
   }
 }

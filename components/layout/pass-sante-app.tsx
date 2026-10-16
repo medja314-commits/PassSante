@@ -209,10 +209,12 @@ type LabExamRow = LabExam;
 
 function ExamsOverview() {
   const { exams, validateExam, toValidate, criticalCount, validatedCount } = useSession();
+  const { role } = useRole();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Tous");
   const [notice, setNotice] = useState("");
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [requestOpen, setRequestOpen] = useState(false);
   const criticalExams: LabExamRow[] = exams.filter(exam => exam.status === "Critique");
   const pendingExam = exams.find(exam => exam.id === pendingId);
   const confirmValidation = (id: string) => {
@@ -223,7 +225,7 @@ function ExamsOverview() {
   };
   const filteredExams = exams.filter(exam => (`${exam.patient} ${exam.exam} ${exam.id}`.toLowerCase().includes(query.toLowerCase())) && (status === "Tous" || exam.status === status));
   return <main className="workspace-page">
-    <PageTitle eyebrow="EXAMENS & LABORATOIRE" title="Résultats et demandes" description="Suivez les examens prescrits et validez les résultats reçus." action={<Button icon="plus" unavailable title={soon}>Nouvelle demande</Button>}/>
+    <PageTitle eyebrow="EXAMENS & LABORATOIRE" title="Résultats et demandes" description="Suivez les examens prescrits et validez les résultats reçus." action={can(role, "create", "dossier") ? <Button icon="plus" onClick={()=>setRequestOpen(true)}>Nouvelle demande</Button> : undefined}/>
     {notice && <div className="toast workspace-toast"><Icon name="check"/>{notice}<button onClick={()=>setNotice("")}><Icon name="x"/></button></div>}
     <div className="lab-stat-grid">
       <article><span className="stat-icon amber"><Icon name="clock"/></span><p><small>En attente</small><strong>{exams.filter(exam => exam.status === "En cours").length}</strong><em>Examens en cours</em></p></article>
@@ -248,30 +250,38 @@ function ExamsOverview() {
       <div className="modal-body"><p><strong>{pendingExam.exam}</strong> — {pendingExam.result}</p><p className="form-error"><Icon name="alert" size={14}/>Cette action marque le résultat comme validé. Elle ne peut pas être annulée depuis cet écran.</p></div>
       <div className="modal-actions"><Button variant="ghost" onClick={()=>setPendingId(null)}>Annuler</Button><Button onClick={()=>confirmValidation(pendingExam.id)}>Confirmer la validation</Button></div>
     </section></div>}
+    {requestOpen && <ExamRequestModal close={()=>setRequestOpen(false)} onSent={setNotice}/>}
   </main>;
 }
 
 const examTypes = ["Bilan sanguin complet", "NFS complète", "Troponine ultrasensible", "Bilan lipidique", "HbA1c + glycémie", "Échographie abdominale", "Radiographie lombaire", "Électrocardiogramme"];
 
-function ExamRequestModal({ patient, close }: { patient: StaffPatient; close: () => void }) {
-  const [form, setForm] = useState({ exam: "", priority: "Routine", note: "" });
+// Sans patient imposé (bouton « Nouvelle demande »), le patient se choisit dans la liste.
+function ExamRequestModal({ patient, close, onSent }: { patient?: StaffPatient; close: () => void; onSent?: (message: string) => void }) {
+  const { patients, addExamRequest } = useSession();
+  const { role } = useRole();
+  const [form, setForm] = useState({ patientId: patient?.id ?? "", exam: "", priority: "Routine", note: "" });
   const [error, setError] = useState("");
-  const [blocked, setBlocked] = useState(false);
   const update = (field: keyof typeof form, value: string) => setForm(current=>({...current,[field]:value}));
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (!form.exam) { setError("Sélectionnez l'examen à demander."); setBlocked(false); return; }
-    setError(""); setBlocked(true);
+    const target = patient ?? patients.find(item => item.id === form.patientId);
+    if (!target) { setError("Sélectionnez le patient concerné."); return; }
+    if (!form.exam) { setError("Sélectionnez l'examen à demander."); return; }
+    const created = addExamRequest({ patient: target, exam: form.exam, urgent: form.priority === "Urgent" });
+    logAction(role, "create", "dossier", target.id);
+    onSent?.(`Demande envoyée : ${created.exam} (${target.name}).`);
+    close();
   };
   return <div className="modal-backdrop" onClick={close}><section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="exam-request-title" onClick={e=>e.stopPropagation()}>
-    <div className="modal-head"><div><h2 id="exam-request-title">Demander un examen</h2><p>{patient.name} • {patient.id}</p></div><button className="icon-button" onClick={close} aria-label="Fermer"><Icon name="x"/></button></div>
+    <div className="modal-head"><div><h2 id="exam-request-title">Demander un examen</h2><p>{patient ? `${patient.name} • ${patient.id}` : "Choisissez le patient et l'examen"}</p></div><button className="icon-button" onClick={close} aria-label="Fermer"><Icon name="x"/></button></div>
     <form onSubmit={submit} noValidate>
       <div className="modal-form">
+        {!patient && <label>Patient<select value={form.patientId} onChange={e=>update("patientId",e.target.value)} aria-required="true"><option value="">Sélectionner un patient</option>{patients.map(item=><option key={item.id} value={item.id}>{item.name} • {item.id}</option>)}</select></label>}
         <label>Examen<select value={form.exam} onChange={e=>update("exam",e.target.value)} aria-required="true"><option value="">Sélectionner un examen</option>{examTypes.map(item=><option key={item}>{item}</option>)}</select></label>
         <label>Priorité<select value={form.priority} onChange={e=>update("priority",e.target.value)}><option>Routine</option><option>Urgent</option></select></label>
         <label>Note pour le laboratoire (facultative)<textarea value={form.note} onChange={e=>update("note",e.target.value)} placeholder="Renseignements utiles pour la réalisation de l'examen..."/></label>
         {error && <p className="form-error"><Icon name="alert" size={14}/>{error}</p>}
-        {blocked && <p className="form-error"><Icon name="alert" size={14}/>Demande non envoyée, contactez la clinique.</p>}
       </div>
       <div className="modal-actions"><Button variant="ghost" onClick={close}>Annuler</Button><Button type="submit">Envoyer la demande</Button></div>
     </form>
@@ -324,7 +334,8 @@ function PatientHistoryModal({ patient, close, save }: { patient: StaffPatient; 
 
 function PatientRecord({ patient }: { patient: StaffPatient }) {
   const [tab, setTab] = useState("Consultations & CR");
-  const { consultations, updatePatientHistory } = useSession();
+  const { consultations, updatePatientHistory, exams } = useSession();
+  const sessionRequests = exams.filter(item => item.patientId === patient.id && item.category.startsWith("Demande"));
   const [historyOpen, setHistoryOpen] = useState(false);
   const sessionItems = consultations.filter(item => item.patientId === patient.id).sort((a, b) => {
     const dateA = dateOf(a.at);
@@ -358,7 +369,7 @@ function PatientRecord({ patient }: { patient: StaffPatient }) {
     {tab === "Consultations & CR" && <SessionTimeline items={sessionItems}/>}
     {tab === "Constantes" && patient.id === DEMO_RECORD_ID && <ConstantsView/>}
     {tab === "Prescriptions" && patient.id === DEMO_RECORD_ID && <Prescriptions/>}
-    {tab === "Examens & Labo" && patient.id === DEMO_RECORD_ID && <LabView onRequestExam={()=>setExamOpen(true)}/>}
+    {tab === "Examens & Labo" && patient.id === DEMO_RECORD_ID && <LabView onRequestExam={()=>setExamOpen(true)} requests={sessionRequests}/>}
     {tab !== "Consultations & CR" && patient.id !== DEMO_RECORD_ID && <section className="card empty-state"><Icon name="file" size={26}/><strong>Détails non disponibles</strong><p>Cette section ne contient pas encore de données pour ce dossier.</p></section>}
     {historyOpen && <PatientHistoryModal patient={patient} close={()=>setHistoryOpen(false)} save={(history,allergyList)=>updatePatientHistory(patient.id,history,allergyList)}/>}
     {examOpen && <ExamRequestModal patient={patient} close={()=>setExamOpen(false)}/>}
@@ -452,8 +463,8 @@ const patientLabItems = [
   { name: "Bilan thyroïdien", detail: `${longDate({ offset: -60 })} • BioLab`, tone: "green" as const, label: "Validé" },
 ];
 
-function LabView({ onRequestExam }: { onRequestExam: () => void }) {
-  return <div className="record-grid"><section className="card table-card"><div className="section-head"><div><h2>Examens & laboratoire</h2><p>Résultats, demandes et documents</p></div><Button icon="plus" onClick={onRequestExam}>Demander un examen</Button></div>{patientLabItems.map((item,i)=><div className="document-row" key={item.name}><span className="document-icon"><Icon name={i===1?"activity":"flask"}/></span><div><strong>{item.name}</strong><small>{item.detail}</small></div><Badge tone={item.tone === "amber" ? "amber" : "green"}>{item.label}</Badge><button className="icon-button" aria-disabled="true" title={soon} aria-label={`Action pour ${item.name}`}><Icon name={i===1?"more":"download"}/></button></div>)}</section><aside className="card upload-zone"><span><Icon name="download" size={28}/></span><h2>Importer un résultat</h2><p>Déposez un fichier PDF, JPG ou PNG ici</p><Button variant="soft" unavailable title={soon}>Parcourir les fichiers</Button></aside></div>;
+function LabView({ onRequestExam, requests }: { onRequestExam: () => void; requests: LabExam[] }) {
+  return <div className="record-grid"><section className="card table-card"><div className="section-head"><div><h2>Examens & laboratoire</h2><p>Résultats, demandes et documents</p></div><Button icon="plus" onClick={onRequestExam}>Demander un examen</Button></div>{requests.map(item=><div className="document-row" key={item.id}><span className="document-icon"><Icon name="flask"/></span><div><strong>{item.exam}</strong><small>Demande de cette session • {item.category}</small></div><Badge tone={item.category === "Demande urgente" ? "red" : "blue"}>{item.status}</Badge></div>)}{patientLabItems.map((item,i)=><div className="document-row" key={item.name}><span className="document-icon"><Icon name={i===1?"activity":"flask"}/></span><div><strong>{item.name}</strong><small>{item.detail}</small></div><Badge tone={item.tone === "amber" ? "amber" : "green"}>{item.label}</Badge><button className="icon-button" aria-disabled="true" title={soon} aria-label={`Action pour ${item.name}`}><Icon name={i===1?"more":"download"}/></button></div>)}</section><aside className="card upload-zone"><span><Icon name="download" size={28}/></span><h2>Importer un résultat</h2><p>Déposez un fichier PDF, JPG ou PNG ici</p><Button variant="soft" unavailable title={soon}>Parcourir les fichiers</Button></aside></div>;
 }
 
 function AssistantView() {
@@ -592,7 +603,7 @@ function AdminApp({ onMode, initialPage = "users", onPage }: { onMode: (v: "pro"
   const { role } = useRole();
   if (!can(role, "read", "logs")) return <main className="admin-content"><p>Accès refusé : réservé à l'administrateur.</p></main>;
   const changePage = (nextPage: string) => { setPage(nextPage); onPage(nextPage); };
-  return <div className="admin-app"><aside className="admin-sidebar"><Logo dark/><nav><span className="nav-caption">ADMINISTRATION</span><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles & permissions</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Journaux d'audit</button></nav><div className="admin-profile"><div className="mini-avatar">SK</div><div><strong>Sophie Kouassi</strong><span>Super administratrice</span></div><button onClick={()=>onMode("pro")} aria-label="Passer à l'espace professionnel"><Icon name="chevron"/></button></div></aside><div className="admin-main"><header className="admin-topbar"><div className="global-search"><Icon name="search"/><input placeholder="Rechercher dans l'administration..."/></div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Notifications"><Icon name="bell"/></button></header><nav className="admin-mobile-nav"><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Audit</button></nav>{page==="logs"?<AdminAuditLogs/>:page==="roles"?<AdminRoles/>:<UsersPage openModal={()=>setModal(true)}/>}</div>{modal&&<RoleModal close={()=>setModal(false)}/>}</div>;
+  return <div className="admin-app"><aside className="admin-sidebar"><Logo dark/><nav><span className="nav-caption">ADMINISTRATION</span><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles & permissions</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Journaux d'audit</button><button onClick={()=>window.location.assign("/admin/comptes")}><Icon name="users"/>Comptes en attente</button></nav><div className="admin-profile"><div className="mini-avatar">SK</div><div><strong>Sophie Kouassi</strong><span>Super administratrice</span></div><button onClick={()=>onMode("pro")} aria-label="Passer à l'espace professionnel"><Icon name="chevron"/></button></div></aside><div className="admin-main"><header className="admin-topbar"><div className="global-search"><Icon name="search"/><input placeholder="Rechercher dans l'administration..."/></div><button className="icon-button" aria-disabled="true" title={soon} aria-label="Notifications"><Icon name="bell"/></button></header><nav className="admin-mobile-nav"><button className={page==="users"?"active":""} onClick={()=>changePage("users")}><Icon name="users"/>Utilisateurs</button><button className={page==="roles"?"active":""} onClick={()=>changePage("roles")}><Icon name="key"/>Rôles</button><button className={page==="logs"?"active":""} onClick={()=>changePage("logs")}><Icon name="shield"/>Audit</button><button onClick={()=>window.location.assign("/admin/comptes")}><Icon name="users"/>En attente</button></nav>{page==="logs"?<AdminAuditLogs/>:page==="roles"?<AdminRoles/>:<UsersPage openModal={()=>setModal(true)}/>}</div>{modal&&<RoleModal close={()=>setModal(false)}/>}</div>;
 }
 
 function UsersPage({openModal}:{openModal:()=>void}) {

@@ -1,8 +1,20 @@
-import type { KeyboardEvent } from "react";
+"use client";
+
+import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { Badge, Button, Icon } from "@/components/ui";
 import { isWeekend, monthGrid, monthLabel, nowTime, planningDateLabel, planningDay, planningWeekdayName, todayWeekIndex, workWeek } from "@/data/dates";
+import { useSession, type SessionAppointment } from "@/components/layout/session-context";
+import { useRole } from "@/lib/role-context";
+import { can } from "@/lib/rbac";
+import { logAction } from "@/lib/audit";
 
 const soon = "Bientôt disponible";
+const rooms = ["Cabinet 2B", "Cabinet 3A"];
+
+// Date locale au format AAAA-MM-JJ, pour comparer avec le champ date.
+function localDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 // Rendez-vous du jour : ils sont affichés dans la colonne d'aujourd'hui. Seuls les patients avec dossier sont cliquables.
 const dayAppointments = [
@@ -25,7 +37,43 @@ const weekEvents = [
   { col: 4, cls: "event-ven-1500", tone: "blue", time: "15:00", name: "Adama Bamba", sub: "Consultation" },
 ];
 
+function NewAppointmentModal({ close, onCreate }: { close: () => void; onCreate: (input: Omit<SessionAppointment, "id">) => void }) {
+  const { patients } = useSession();
+  const [form, setForm] = useState({ patientId: "", date: "", time: "", reason: "", room: rooms[0] });
+  const [error, setError] = useState("");
+  const update = (field: keyof typeof form, value: string) => setForm(current => ({ ...current, [field]: value }));
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const patient = patients.find(item => item.id === form.patientId);
+    if (!patient) { setError("Sélectionnez le patient."); return; }
+    if (!form.date) { setError("Indiquez la date du rendez-vous."); return; }
+    if (form.date < localDateKey(new Date())) { setError("La date du rendez-vous est passée."); return; }
+    if (!form.time) { setError("Indiquez l'heure du rendez-vous."); return; }
+    if (!form.reason.trim()) { setError("Indiquez le motif du rendez-vous."); return; }
+    setError("");
+    onCreate({ patientId: patient.id, patientName: patient.name, date: form.date, time: form.time, reason: form.reason.trim(), room: form.room });
+    close();
+  };
+  return <div className="modal-backdrop" onClick={close}><section className="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="new-appointment-title" onClick={event=>event.stopPropagation()}>
+    <div className="modal-head"><div><h2 id="new-appointment-title">Nouveau rendez-vous</h2><p>Planifiez une consultation pour un patient.</p></div><button className="icon-button" onClick={close} aria-label="Fermer"><Icon name="x"/></button></div>
+    <form onSubmit={submit} noValidate>
+      <div className="modal-form">
+        <label>Patient<select value={form.patientId} onChange={event=>update("patientId",event.target.value)} aria-required="true"><option value="">Sélectionner un patient</option>{patients.map(patient=><option key={patient.id} value={patient.id}>{patient.name} • {patient.id}</option>)}</select></label>
+        <label>Date<input type="date" value={form.date} onChange={event=>update("date",event.target.value)} aria-required="true"/></label>
+        <label>Heure<input type="time" value={form.time} onChange={event=>update("time",event.target.value)} aria-required="true"/></label>
+        <label>Salle<select value={form.room} onChange={event=>update("room",event.target.value)}>{rooms.map(room=><option key={room}>{room}</option>)}</select></label>
+        <label>Motif<textarea value={form.reason} onChange={event=>update("reason",event.target.value)} aria-required="true" placeholder="Motif de la consultation..."/></label>
+        {error && <p className="form-error"><Icon name="alert" size={14}/>{error}</p>}
+      </div>
+      <div className="modal-actions"><Button variant="ghost" onClick={close}>Annuler</Button><Button type="submit">Enregistrer le rendez-vous</Button></div>
+    </form>
+  </section></div>;
+}
+
 export function StaffAgenda({ onOpenPatient }: { onOpenPatient: (patientId: string) => void }) {
+  const { appointments, addAppointment } = useSession();
+  const { role } = useRole();
+  const [showNew, setShowNew] = useState(false);
   const now = new Date();
   // Week-end : l'agenda montre la semaine du lundi suivant (jour de référence, voir planningDay).
   const weekend = isWeekend(now);
@@ -49,7 +97,7 @@ export function StaffAgenda({ onOpenPatient }: { onOpenPatient: (patientId: stri
   } : {};
 
   return <main className="workspace-page staff-agenda-page">
-    <div className="workspace-heading"><div><span className="eyebrow">AGENDA CLINIQUE</span><h1>Agenda & rendez-vous</h1><p>Visualisez votre planning et les rendez-vous programmés.</p></div><Button icon="plus" unavailable title={soon}>Nouveau rendez-vous</Button></div>
+    <div className="workspace-heading"><div><span className="eyebrow">AGENDA CLINIQUE</span><h1>Agenda & rendez-vous</h1><p>Visualisez votre planning et les rendez-vous programmés.</p></div>{can(role, "create", "rdv") && <Button icon="plus" onClick={()=>setShowNew(true)}>Nouveau rendez-vous</Button>}</div>
     <div className="agenda-summary">
       <article><span className="stat-icon blue"><Icon name="calendar"/></span><div><small>{weekend ? `Rendez-vous ${planningWeekdayName(now)}` : "Rendez-vous aujourd'hui"}</small><strong>{dayAppointments.length}</strong><p>{upcoming} consultation{upcoming > 1 ? "s" : ""} restante{upcoming > 1 ? "s" : ""}</p></div></article>
       <article><span className="stat-icon green"><Icon name="check"/></span><div><small>Confirmés</small><strong>{confirmed}</strong><p>{confirmedShare}% du planning</p></div></article>
@@ -77,8 +125,10 @@ export function StaffAgenda({ onOpenPatient }: { onOpenPatient: (patientId: stri
       <aside className="agenda-side">
         <section className="card mini-calendar"><div className="mini-calendar-head"><button aria-disabled="true" title={soon} aria-label="Mois précédent"><Icon name="chevron" size={14}/></button><strong>{monthLabel(now).replace(/^./, c=>c.toUpperCase())}</strong><button className="next" aria-disabled="true" title={soon} aria-label="Mois suivant"><Icon name="chevron" size={14}/></button></div><div className="mini-calendar-grid">{["L","M","M","J","V","S","D"].map((day,index)=><b key={`${day}-${index}`}>{day}</b>)}{grid.map((cell,index)=><span key={index} className={`${cell.outside?"outside":""} ${cell.today?"selected":""}`}>{cell.date}</span>)}</div></section>
         <section className="card today-list"><div className="section-head"><div><h2>{weekend ? `Prochains rendez-vous — ${planningWeekdayName(now)}` : "Aujourd'hui"}</h2><p>{dayAppointments.length} rendez-vous • {upcoming} à venir</p></div><Badge tone="blue">{planningDateLabel(now)}</Badge></div>{dayAppointments.map(appointment=><article key={appointment.time} {...openable(appointment.patientId)}><time>{appointment.time}</time><span className={`list-avatar ${appointment.tone}`}>{appointment.initials}</span><div><strong>{appointment.name}</strong><p>{appointment.reason}</p><small><Icon name="map" size={11}/>{appointment.room}</small></div><Badge tone={appointment.tone}>{appointment.status === "Urgent" ? "Urgent" : "Confirmé"}</Badge></article>)}<button className="agenda-all-link" aria-disabled="true" title={soon}>Voir tous les rendez-vous <Icon name="chevron" size={14}/></button></section>
+        {appointments.length > 0 && <section className="card today-list"><div className="section-head"><div><h2>Créés pendant cette session</h2><p>Non conservés après rechargement</p></div><Badge tone="blue">{appointments.length}</Badge></div>{appointments.map(item=><article key={item.id} {...openable(item.patientId)}><time>{item.time}</time><span className="list-avatar blue">{item.patientName.split(/\s+/).slice(0,2).map(part=>part[0]).join("").toUpperCase()}</span><div><strong>{item.patientName}</strong><p>{item.reason}</p><small><Icon name="map" size={11}/>{item.room} • {new Date(`${item.date}T12:00:00`).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</small></div></article>)}</section>}
         <section className="card agenda-legend"><strong>Légende</strong><div><span><i className="blue"/>Consultation</span><span><i className="green"/>Suivi</span><span><i className="red"/>Urgence</span><span><i className="purple"/>Contrôle</span></div></section>
       </aside>
     </div>
+    {showNew && <NewAppointmentModal close={()=>setShowNew(false)} onCreate={input=>{ const created = addAppointment(input); logAction(role, "create", "rdv", created.id); }}/>}
   </main>;
 }

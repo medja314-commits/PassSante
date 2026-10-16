@@ -22,6 +22,20 @@ type SessionValue = {
   // Patients ayant une consultation dans la session, le plus récent en premier, puis les autres patients.
   recentPatients: (all: StaffPatient[]) => StaffPatient[];
   lastConsultationOf: (patientId: string) => SessionConsultation | undefined;
+  // Rendez-vous et demandes d'examen créés pendant la session (non conservés après rechargement).
+  appointments: SessionAppointment[];
+  addAppointment: (input: Omit<SessionAppointment, "id">) => SessionAppointment;
+  addExamRequest: (input: { patient: StaffPatient; exam: string; urgent: boolean }) => LabExam;
+};
+
+export type SessionAppointment = {
+  id: string;
+  patientId: string;
+  patientName: string;
+  date: string;
+  time: string;
+  reason: string;
+  room: string;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -52,6 +66,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [exams, setExams] = useState<LabExam[]>(labExams);
   const [consultations, setConsultations] = useState<SessionConsultation[]>(demoConsultations);
   const [patients, setPatients] = useState<StaffPatient[]>(staffPatients);
+  const [appointments, setAppointments] = useState<SessionAppointment[]>([]);
   const [storageLoaded, setStorageLoaded] = useState(false);
 
   useEffect(() => {
@@ -78,6 +93,32 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const addConsultation = useCallback((input: Omit<SessionConsultation, "id" | "at">) => {
     const created: SessionConsultation = { ...input, id: `cons-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, at: nowStamp() };
     setConsultations(current => [created, ...current]);
+    return created;
+  }, []);
+
+  const addAppointment = useCallback((input: Omit<SessionAppointment, "id">) => {
+    const created: SessionAppointment = { ...input, id: `rdv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` };
+    setAppointments(current => [created, ...current]);
+    return created;
+  }, []);
+
+  // La demande apparaît en tête de la liste des examens, au statut « En cours », en attente de réalisation.
+  // La catégorie commence par « Demande » : c'est ce qui distingue les demandes de la session des examens de démonstration.
+  const addExamRequest = useCallback((input: { patient: StaffPatient; exam: string; urgent: boolean }) => {
+    const created: LabExam = {
+      id: `LAB-${Date.now().toString().slice(-6)}`,
+      patient: input.patient.name,
+      patientId: input.patient.id,
+      initials: input.patient.initials,
+      exam: input.exam,
+      category: input.urgent ? "Demande urgente" : "Demande",
+      requested: nowStamp(),
+      received: null,
+      status: "En cours",
+      tone: "blue",
+      result: "—",
+    };
+    setExams(current => [created, ...current]);
     return created;
   }, []);
 
@@ -140,7 +181,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     updatePatientHistory,
     recentPatients,
     lastConsultationOf,
-  }), [exams, validateExam, consultations, addConsultation, patients, addPatient, updatePatientHistory, recentPatients, lastConsultationOf, storageLoaded]);
+    appointments,
+    addAppointment,
+    addExamRequest,
+  }), [exams, validateExam, consultations, addConsultation, patients, addPatient, updatePatientHistory, recentPatients, lastConsultationOf, storageLoaded, appointments, addAppointment, addExamRequest]);
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
