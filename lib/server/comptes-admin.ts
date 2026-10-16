@@ -31,11 +31,15 @@ export async function listerComptesEnAttente(): Promise<CompteEnAttente[]> {
 }
 
 // Valide un compte en attente avec le rôle et, pour un patient, le dossier vérifié par l'administration.
+// Le matricule a déjà été attribué à l'inscription : la validation ne fait que débloquer le compte.
 export async function validerCompte(uid: string, attribution: Extract<Attribution, { ok: true }>): Promise<void> {
-  const profil = await db().collection("comptes").doc(uid).get();
+  const compte = db().collection("comptes").doc(uid);
+  // Contrôle avant toute écriture : un compte déjà traité ne reçoit pas de rôle.
+  const profil = await compte.get();
   if (!profil.exists || profil.data()?.statut !== "en_attente") {
     throw new CompteIntrouvable();
   }
+
   const claims: { role: RoleAttribuable; statut: "valide"; patientId?: string; fonction?: string } = {
     role: attribution.role,
     statut: "valide",
@@ -44,7 +48,7 @@ export async function validerCompte(uid: string, attribution: Extract<Attributio
   if (attribution.fonction) claims.fonction = attribution.fonction;
 
   await auth().setCustomUserClaims(uid, claims);
-  await db().collection("comptes").doc(uid).update({ statut: "valide", roleAttribue: attribution.role });
+  await compte.update({ statut: "valide", roleAttribue: attribution.role });
 }
 
 // Refuse un compte : il est désactivé côté Firebase, et ne peut plus se connecter.

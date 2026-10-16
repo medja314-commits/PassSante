@@ -66,5 +66,6 @@ export default function ComptesEnAttentePage() {
         <button type="button" onClick={() => action(compte.uid, "refuser")}>Refuser</button>
       </div>
     </section>)}
+    <p><a href="/admin/users">Retour à l&apos;administration</a></p>
   </main>;
 }

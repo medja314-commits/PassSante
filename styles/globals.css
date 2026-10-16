@@ -1461,4 +1461,21 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .auth-liens { margin-top: 18px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; }
 .auth-liens a { color: var(--blue-dark); font-weight: 600; text-decoration: none; }
 .auth-liens a:hover { text-decoration: underline; }
-@media (max-width: 480px) { .auth-card { padding: 24px 20px 20px; } }
+.auth-card-large { max-width: 460px; }
+.auth-choix { border: 0; padding: 0; margin: 0 0 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.auth-choix legend { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.auth-choix label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border: 1px solid #dbe3e9; border-radius: var(--radius); font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.auth-choix label:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); color: var(--blue-dark); }
+.auth-choix input { accent-color: var(--blue-dark); }
+.auth-deux { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.auth-field small { font-weight: 400; color: var(--muted); }
+.auth-message { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: var(--radius); font-size: 13px; color: var(--ink); }
+.auth-message p { margin: 4px 0 0; color: var(--muted); }
+.auth-message-succes { background: var(--green-soft); }
+.auth-message-succes svg { color: var(--green); flex-shrink: 0; margin-top: 2px; }
+.auth-matricule { margin: 18px 0; padding: 16px; border: 1px dashed var(--blue); border-radius: var(--radius); background: var(--blue-soft); text-align: center; display: grid; gap: 4px; }
+.auth-matricule span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.auth-matricule strong { font-size: 22px; letter-spacing: .04em; color: var(--blue-dark); }
+.auth-matricule p { margin: 0; font-size: 12px; color: var(--muted); }
+.auth-card .auth-submit { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+@media (max-width: 480px) { .auth-card { padding: 24px 20px 20px; } .auth-deux { grid-template-columns: 1fr; } }

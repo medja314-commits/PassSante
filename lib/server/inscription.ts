@@ -1,8 +1,10 @@
 import { auth, db } from "./firebase-admin";
 import { choisirMatriculeLibre, validerInscription, validerInscriptionPersonnel, type DonneesInscription, type DonneesInscriptionPersonnel } from "./inscription-core";
 
-// Inscription patient : SERVEUR UNIQUEMENT. Le compte est créé « en attente » : l'administration le rattache
-// à son dossier après vérification d'identité. Aucun rattachement automatique.
+// Inscription : SERVEUR UNIQUEMENT. Le compte est créé « en attente » : il ne donne accès qu'à la page d'attente
+// tant que l'administration ne l'a pas validé.
+// Patient : matricule généré et réservé à l'inscription, affiché au patient.
+// Personnel : matricule d'hôpital saisi, réservé s'il est libre.
 
 export class InscriptionRefusee extends Error {
   constructor(
