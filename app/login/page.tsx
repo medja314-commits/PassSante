@@ -1,14 +1,13 @@
 "use client";
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 import { Icon, Logo } from "@/components/ui";
 
 const MESSAGE_ECHEC = "Matricule ou mot de passe incorrect.";
 
 // Connexion par matricule : l'email n'est jamais saisi ni utilisé ici.
 export default function LoginPage() {
-  const router = useRouter();
   const [matricule, setMatricule] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [voirMotDePasse, setVoirMotDePasse] = useState(false);
@@ -34,7 +33,8 @@ export default function LoginPage() {
       // Retour à la page demandée, seulement si c'est un chemin local (pas une adresse externe).
       const suite = new URLSearchParams(window.location.search).get("suite");
       const destination = suite && suite.startsWith("/") && !suite.startsWith("//") ? suite : donnees.redirect;
-      router.push(destination);
+      // Rechargement complet : le contexte de rôle relit la session serveur (un simple router.push garderait l'ancien rôle).
+      window.location.assign(destination);
     } catch {
       setErreur("Connexion impossible pour le moment.");
       setOccupe(false);
